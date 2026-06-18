@@ -5,6 +5,7 @@
 
 
 #include<dataBlock.h>
+#include<GChannel.h>
 #include<globals.h>
 
 ddasHit::ddasHit() { Clear(); }
@@ -72,35 +73,69 @@ void ddasHit::Copy(ddasHit& lhs) const {
 
 void ddasHit::set(const dataBlock& data) { 
 
+  GChannel::Get(data.address())->Print();
 
-    evId = data.eventID;
-    id   = data.crate*MAX_BOARDS_PER_CRATE*MAX_CHANNELS_PER_BOARD + 
-           (data.slot-BOARD_START)*MAX_CHANNELS_PER_BOARD         + 
-           data.ch;
-    energy = data.energy;
-    
-    double t;
-    int    c;
-    if(data.cfd_forced==0) {
-      t = data.time*8 - (data.cfd_source==true ? 1: 0)*4; //time in ns.
-      c = data.cfd*4; // (now the true time in ns should (be e_t -cfd/16384)
-    } else {
-      t = data.time*8;
-      c = 0; // (now the true time in ns should (be e_t -cfd/16384)
-    }
-    time = t;
-    cfd = c;
+  // check the digitizer 
+  // set correctly depending on digitizer 
+  evId = data.eventID;
+  id   = data.crate*MAX_BOARDS_PER_CRATE*MAX_CHANNELS_PER_BOARD + 
+    (data.slot-BOARD_START)*MAX_CHANNELS_PER_BOARD         + 
+    data.ch;
+  energy = data.energy;
 
-
-    if(data.QDCsum[0]>1) {
-      for( int i = 0; i < 8; i++) {
-        qdc.push_back(data.QDCsum[i]);
+  double t;
+  int    c;
+  switch(GChannel::Get(data.address())->fMHz()) {
+    case 100:
+      c = data.cfd&0x7fff;
+      if(data.cfd_forced==0) {
+        t = data.time*10 ; //time in ns.
+        c = data.cfd;    // (now the true time in ns should (be e_t -cfd/16384)
+        c = c/32768.;
+      } else
+        t = date.time*10;
+        c = 0;
       }
-    }
-
-    traceLength = data.trace_length;
-    // std::vector<unsigned short> trace;
+      break;
+    case 250:
+      c = data.cfd&0x3fff;
+      if(data.cfd_forced==0) {
+        t = data.time*8 - (data.cfd_source==true ? 1: 0)*4; //time in ns.
+        c = data.cfd*4; // (now the true time in ns should (be e_t -cfd/16384)
+        c = c/16384.;
+      } else {
+        t = data.time*8;
+        c = 0; // (now the true time in ns should (be e_t -cfd/16384)
+      }
+      break;
+    case 500:
+      {
+      int cfd_trigger = (data.cfd&0xe000) >> 29;
+      c = data.cfd&0x0fff;
+      if(cfd_trigger==7) { // forced
+       t = data.time*2;    //??
+       c=0;
+      } else {
+        cfd = (data.cfd/8192 + cfd_trigger-1)*2; //ns.
+        t = data.time*2;    //??
+      }
+    default:
+      break;
   }
+  time = t;
+  cfd = c;
+
+  //cfd corrected time values should be time-cfd.
+
+  if(data.QDCsum[0]>1) {
+    for( int i = 0; i < 8; i++) {
+      qdc.push_back(data.QDCsum[i]);
+    }
+  }
+
+  traceLength = data.trace_length;
+  // std::vector<unsigned short> trace;
+}
 
 
 

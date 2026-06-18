@@ -1,6 +1,7 @@
 
 #this will compile the current library.
 add_library(GFORMAT SHARED 
+  GChannel.cxx
   dataBlock.cxx 
   evtFile.cxx  
   ddasHit.cxx
@@ -13,6 +14,7 @@ target_include_directories(GFORMAT
 ) 
 
 root_generate_dictionary(G__GFormat 
+  GChannel.h 
   dataBlock.h 
   evtFile.h
   ddasHit.h

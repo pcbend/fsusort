@@ -112,6 +112,7 @@ int evtFile::ReadBlock(dataBlock &data,int opt){
     }
   }
 
+// start of pixie info - i think.
   unsigned int header[4]; ///read 4 header, unsigned int = 4 byte = 32 bits. 
   if(!inFile.read(reinterpret_cast<char*>(header),sizeof(header))) {
     endOfFile = true;
@@ -119,6 +120,7 @@ int evtFile::ReadBlock(dataBlock &data,int opt){
   }
   readRingItemByte += sizeof(header);
   blockID ++;
+
 
   if( opt == 0 || opt == 2){
     /// see the Pixie-16 user manual, Table4-2
@@ -132,7 +134,7 @@ int evtFile::ReadBlock(dataBlock &data,int opt){
     data.time         = ((uint64_t)(header[2] & 0xFFFF) << 32) + header[1];
     data.cfd_forced   =  header[2] >> 16  & 0x8000;
     data.cfd_source   =  header[2] >> 16  & 0x4000;
-    data.cfd          =  header[2] >> 16  & 0x3FFF; // 0x3FFF for 250MHz , 0x7FFF for 100MHz
+    data.cfd          =  header[2] >> 16  & 0xFFFF; //0x3FFF; // 0x3FFF for 250MHz , 0x7FFF for 100MHz
     data.energy       = (header[3] & 0xFFFF ); 
     data.trace_length = (header[3] >> 16) & 0x7FFF;
     data.trace_out_of_range =  header[3] >> 31;

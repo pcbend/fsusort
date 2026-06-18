@@ -39,6 +39,8 @@ class dataBlock{
     uint16_t  trace[MAX_TRACE_LENGTH];
 
 
+    uint32_t address() const { uint32_t temp = crate; return (temp<<16) + (slot<<8) + ch; }
+
     void Clear();
     void ClearQDC();
     void ClearTrace();
