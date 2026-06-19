@@ -34,8 +34,10 @@ class ddasHit : public TObject {
    bool    operator<(ddasHit const& rhs) const;
 
   public:
+    uint32_t GetAddress()  const { return address; }
     double GetEnergy()  const { return energy; }
-    double GetTime()    const { return time + cfd/16384.; }
+    //double GetTime()    const { return time; }//+ cfd/16384.; }
+    double GetTime()    const { return time  +cfd; }//+ cfd/16384.; }
     int    GetCFDTime() const { return cfd; }
     int    GetId()      const { return id;  }
 
@@ -45,6 +47,7 @@ class ddasHit : public TObject {
     void print() const;
 
   private:
+    uint32_t address;
     unsigned long long evId;
     int id;
     double energy;

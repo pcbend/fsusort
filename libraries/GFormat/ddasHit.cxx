@@ -73,7 +73,7 @@ void ddasHit::Copy(ddasHit& lhs) const {
 
 void ddasHit::set(const dataBlock& data) { 
 
-  GChannel::Get(data.address())->Print();
+  //GChannel::Get(data.address())->Print();
 
   // check the digitizer 
   // set correctly depending on digitizer 
@@ -83,28 +83,31 @@ void ddasHit::set(const dataBlock& data) {
     data.ch;
   energy = data.energy;
 
+  address = data.address();
+
+
   double t;
   int    c;
   switch(GChannel::Get(data.address())->fMHz) {
     case 100:
       c = data.cfd&0x7fff;
       if(data.cfd_forced==0) {
-        t = data.time*10 ; //time in ns.
+        t = data.time;//*10 ; //time in ns.
         c = data.cfd;    // (now the true time in ns should (be e_t -cfd/16384)
         c = c/32768.;
       } else {
-        t = data.time*10;
+        t = data.time;//*10;
         c = 0;
       }
       break;
     case 250:
       c = data.cfd&0x3fff;
       if(data.cfd_forced==0) {
-        t = data.time*8 - (data.cfd_source==true ? 1: 0)*4; //time in ns.
+        t = data.time;//*8 - (data.cfd_source==true ? 1: 0)*4; //time in ns.
         c = data.cfd*4; // (now the true time in ns should (be e_t -cfd/16384)
         c = c/16384.;
       } else {
-        t = data.time*8;
+        t = data.time;//*8;
         c = 0; // (now the true time in ns should (be e_t -cfd/16384)
       }
       break;
@@ -113,11 +116,11 @@ void ddasHit::set(const dataBlock& data) {
       int cfd_trigger = (data.cfd&0xe000) >> 29;
       c = data.cfd&0x0fff;
       if(cfd_trigger==7) { // forced
-       t = data.time*2;    //??
+       t = data.time;//*2;    //??
        c=0;
       } else {
         cfd = (data.cfd/8192 + cfd_trigger-1)*2; //ns.
-        t = data.time*2;    //??
+        t = data.time;//*2;    //??
       }
       }
       break;

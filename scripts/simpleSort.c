@@ -6,10 +6,10 @@ void simpleSort(const char *fname) {
   dataBlock db;
 
   GHistogramer::Get().SetOutFile("output.root");
-
+  GChannel::ReadDetmap("cals/detmap.tsv");
 
   int counter=0;
-  while(infile.ReadBlock(db)) {
+  while(infile.ReadBlock(db)>0) {
     ddasHit hit;
     hit.set(db);
     GHistogramer::Get().Fill("summary",500,0,500,hit.GetId(),16000,0,64000,hit.GetEnergy());
