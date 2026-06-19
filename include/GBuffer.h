@@ -1,44 +1,46 @@
-#ifndef __GBUFFER_H_
-#define __GBUFFER_H_
+#ifndef __GBUFFER_H__
+#define __GBUFFER_H__
 
-
-#include <condition_variable>
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <queue>
 #include <utility>
+#include <vector>
 
 #include "dataBlock.h"
+#include "ddasHit.h"
 
 class dataBlockBuffer {
   public:
-    explicit dataBlockBuffer(uint64_t orderingWindow = 0) : fOrderingWindow(orderingWindow) {}
+    explicit dataBlockBuffer(uint64_t orderingWindow = 0)
+      : fOrderingWindow(orderingWindow) {}
 
     void Push(uint64_t timestamp, dataBlock block) {
-      {
-        std::lock_guard<std::mutex> lock(fMutex);
-        if(timestamp > fLatestTimestamp)
-          fLatestTimestamp = timestamp;
-        fBuffer.emplace(timestamp, std::move(block));
-      }
-      fCondition.notify_one();
+      std::lock_guard<std::mutex> lock(fMutex);
+      if(timestamp > fLatestTimestamp)
+        fLatestTimestamp = timestamp;
+      fBuffer.emplace(timestamp, std::move(block));
     }
 
-bool TryPop(dataBlock& block) {
-  std::lock_guard<std::mutex> lock(fMutex);
+    bool TryPop(dataBlock& block) {
+      std::lock_guard<std::mutex> lock(fMutex);
 
-  if(fBuffer.empty())
-    return false;
+      if(fBuffer.empty())
+        return false;
+      if(!fFlushing && !HasReadyBlock())
+        return false;
 
-  if(!fFlushing && !HasReadyBlock())
-    return false;
+      auto it = fBuffer.begin();
+      block = std::move(it->second);
+      fBuffer.erase(it);
+      return true;
+    }
 
-  auto it = fBuffer.begin();
-  block = std::move(it->second);
-  fBuffer.erase(it);
-  return true;
-}
-
+    void Flush() {
+      std::lock_guard<std::mutex> lock(fMutex);
+      fFlushing = true;
+    }
 
     bool Empty() const {
       std::lock_guard<std::mutex> lock(fMutex);
@@ -50,11 +52,6 @@ bool TryPop(dataBlock& block) {
       return fBuffer.size();
     }
 
-    void Flush() {
-      std::lock_guard<std::mutex> lock(fMutex);
-      fFlushing = true;
-    }
-
   private:
     bool HasReadyBlock() const {
       if(fBuffer.empty())
@@ -62,17 +59,83 @@ bool TryPop(dataBlock& block) {
       const auto oldestTimestamp = fBuffer.begin()->first;
       return oldestTimestamp + fOrderingWindow <= fLatestTimestamp;
     }
-
-    std::multimap<uint64_t, dataBlock> fBuffer;
-
     mutable std::mutex fMutex;
-    std::condition_variable fCondition;
-
+    
+    std::multimap<uint64_t, dataBlock> fBuffer;
     bool fFlushing{false};
-
     uint64_t fLatestTimestamp{0};
     uint64_t fOrderingWindow{0};
 };
 
-#endif
+class ddasBuffer {
+  public:
+    explicit ddasBuffer(double buildWindow = 0.0)
+      : fBuildWindow(buildWindow) {}
 
+    void Push(ddasHit hit) {
+      std::lock_guard<std::mutex> lock(fMutex);
+      
+      const double t = hit.GetTime();
+      
+      if(fCurrentEvent.empty()) {
+        fCurrentStart = t;
+        fCurrentEvent.push_back(std::move(hit));
+        return;
+      }
+
+      if(std::abs(t - fCurrentStart) <= fBuildWindow) { //GetTime is cfd corrected; abs for safety
+        fCurrentEvent.push_back(std::move(hit));
+        return;
+      }
+
+      fBuiltEvents.push(std::move(fCurrentEvent));
+      fCurrentEvent.clear();
+      
+      fCurrentEvent.push_back(std::move(hit));
+      fCurrentStart = t;
+    }
+
+    bool TryPop(std::vector<ddasHit>& event) {
+      std::lock_guard<std::mutex> lock(fMutex);
+
+      if(fBuiltEvents.empty())
+        return false;
+      event = std::move(fBuiltEvents.front());
+      fBuiltEvents.pop();
+      return true;
+    }
+
+    void Flush() {
+      std::lock_guard<std::mutex> lock(fMutex);
+
+      if(!fCurrentEvent.empty()) {
+        fBuiltEvents.push(std::move(fCurrentEvent));
+        fCurrentEvent.clear();
+      }
+
+      fFlushing = true;
+    }
+
+    bool Empty() const {
+      std::lock_guard<std::mutex> lock(fMutex);
+      return fBuiltEvents.empty() && fCurrentEvent.empty();
+    }
+
+    std::size_t Size() const {
+      std::lock_guard<std::mutex> lock(fMutex);
+      return fBuiltEvents.size();
+    }
+
+  private:
+    double fBuildWindow{0.0};
+    double fCurrentStart{0.0};
+
+    std::vector<ddasHit> fCurrentEvent;
+    std::queue<std::vector<ddasHit>> fBuiltEvents;
+
+    mutable std::mutex fMutex;
+
+    bool fFlushing{false};
+};
+
+#endif

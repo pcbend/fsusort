@@ -44,7 +44,10 @@ endif()
 #This tells cmake to continue into these directories.
 add_subdirectory(libraries)
 
-#create the executablei, we do it 'first' so the exectuable variable is avail in subdirs
+
+#################
+#################
+#create the executable, we do it 'first' so the exectuable variable is avail in subdirs
 add_executable(fsusort 
   src/fsusort.cxx
 )
@@ -67,21 +70,28 @@ target_link_libraries(fsusort
     ${ROOT_LIBRARIES}
 )        
 
-add_executable(test_evtloop src/test_evtloop.cxx)
+#################
+#################
 
-target_include_directories(test_evtloop
+add_executable(eventBuildingTest 
+  src/eventBuildingTest.cxx
+)
+
+target_include_directories(eventBuildingTest  
   PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${ROOT_INCLUDE_DIRS}
 )
 
-target_link_libraries(test_evtloop
+target_link_libraries(eventBuildingTest
   PRIVATE
     GCORE
     GFORMAT
     ${ROOT_LIBRARIES}
 )
 
+#################
+#################
 
 string(ASCII 27 Esc)
 set(RED     "${Esc}[31m")
