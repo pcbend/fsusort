@@ -85,15 +85,15 @@ void ddasHit::set(const dataBlock& data) {
 
   double t;
   int    c;
-  switch(GChannel::Get(data.address())->fMHz()) {
+  switch(GChannel::Get(data.address())->fMHz) {
     case 100:
       c = data.cfd&0x7fff;
       if(data.cfd_forced==0) {
         t = data.time*10 ; //time in ns.
         c = data.cfd;    // (now the true time in ns should (be e_t -cfd/16384)
         c = c/32768.;
-      } else
-        t = date.time*10;
+      } else {
+        t = data.time*10;
         c = 0;
       }
       break;
@@ -119,6 +119,8 @@ void ddasHit::set(const dataBlock& data) {
         cfd = (data.cfd/8192 + cfd_trigger-1)*2; //ns.
         t = data.time*2;    //??
       }
+      }
+      break;
     default:
       break;
   }
