@@ -79,56 +79,41 @@ void ddasHit::set(const dataBlock& data) {
   // set correctly depending on digitizer 
   evId = data.eventID;
   id   = data.crate*MAX_BOARDS_PER_CRATE*MAX_CHANNELS_PER_BOARD + 
-    (data.slot-BOARD_START)*MAX_CHANNELS_PER_BOARD         + 
-    data.ch;
-  energy = data.energy;
-
+        (data.slot-BOARD_START)*MAX_CHANNELS_PER_BOARD         + 
+         data.ch;
+  energy  = data.energy;
   address = data.address();
 
-
-  double t;
-  int    c;
+  time = static_cast<double>(data.time);
+  cfd  = 0.0;
+  
   switch(GChannel::Get(data.address())->fMHz) {
     case 100:
-      c = data.cfd&0x7fff;
       if(data.cfd_forced==0) {
-        t = data.time;//*10 ; //time in ns.
-        c = data.cfd;    // (now the true time in ns should (be e_t -cfd/16384)
-        c = c/32768.;
-      } else {
-        t = data.time;//*10;
-        c = 0;
+        cfd = static_cast<double>(data.cfd & 0x7fff)/32768.0;
       }
       break;
     case 250:
-      c = data.cfd&0x3fff;
-      if(data.cfd_forced==0) {
-        t = data.time;//*8 - (data.cfd_source==true ? 1: 0)*4; //time in ns.
-        c = data.cfd*4; // (now the true time in ns should (be e_t -cfd/16384)
-        c = c/16384.;
-      } else {
-        t = data.time;//*8;
-        c = 0; // (now the true time in ns should (be e_t -cfd/16384)
+       if(data.cfd_forced == 0) {
+        const double frac = static_cast<double>(data.cfd & 0x3fff) / 16384.0;
+        const double src  = data.cfd_source ? 0.5 : 0.0;
+        cfd = frac + src;
       }
       break;
     case 500:
-      {
-      int cfd_trigger = (data.cfd&0xe000) >> 29;
-      c = data.cfd&0x0fff;
-      if(cfd_trigger==7) { // forced
-       t = data.time;//*2;    //??
-       c=0;
-      } else {
-        cfd = (data.cfd/8192 + cfd_trigger-1)*2; //ns.
-        t = data.time;//*2;    //??
-      }
+     {
+        const int source = (data.cfd >> 13) & 0x7;
+        const int frac   = data.cfd & 0x1fff;
+
+        if(source >=0 && source <=4) {
+          cfd = (static_cast<double>(source) +
+                 static_cast<double>(frac) / 8192.0) / 5.0;
+        }
       }
       break;
     default:
       break;
   }
-  time = t;
-  cfd = c;
 
   //cfd corrected time values should be time-cfd.
 

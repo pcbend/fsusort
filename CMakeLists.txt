@@ -44,7 +44,6 @@ endif()
 #This tells cmake to continue into these directories.
 add_subdirectory(libraries)
 
-
 #create the executablei, we do it 'first' so the exectuable variable is avail in subdirs
 add_executable(fsusort 
   src/fsusort.cxx
@@ -55,7 +54,6 @@ target_include_directories(fsusort
   ${CMAKE_SOURCE_DIR}/include
   ${ROOT_INCLUDE_DIRS}
 ) 
-
 
 target_link_libraries(fsusort 
   PRIVATE
@@ -68,6 +66,22 @@ target_link_libraries(fsusort
   #UNPACKER
     ${ROOT_LIBRARIES}
 )        
+
+add_executable(test_evtloop src/test_evtloop.cxx)
+
+target_include_directories(test_evtloop
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${ROOT_INCLUDE_DIRS}
+)
+
+target_link_libraries(test_evtloop
+  PRIVATE
+    GCORE
+    GFORMAT
+    ${ROOT_LIBRARIES}
+)
+
 
 string(ASCII 27 Esc)
 set(RED     "${Esc}[31m")
