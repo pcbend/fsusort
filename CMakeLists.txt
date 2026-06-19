@@ -62,8 +62,7 @@ target_link_libraries(fsusort
   PRIVATE
     GCORE
     GFORMAT
-  #GFILE
-  #GDETECTOR
+    GPHYSICS
   #GTYPES
     GHISTOGRAMER
   #UNPACKER
@@ -87,6 +86,7 @@ target_link_libraries(eventBuildingTest
   PRIVATE
     GCORE
     GFORMAT
+    GPHYSICS
     ${ROOT_LIBRARIES}
 )
 

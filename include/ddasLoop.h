@@ -13,24 +13,26 @@
 
 class ddasLoop : public GThread {
   public:
-    ddasLoop(evtLoop& input, double buildWindow = 0.0)
-      : fInput(input),
-      fBuffer(buildWindow) {}
+    ddasLoop(evtLoop& input, double buildWindow = 0.0,uint32_t nOutputs=1)
+      : fInput(input) {
+      for(uint32_t i=0;i<nOutputs;i++) 
+        fBuffers.emplace_back(std::make_unique<ddasBuffer>(buildWindow));
+    }
 
-    ddasBuffer& Buffer() {
-      return fBuffer;
+    ddasBuffer& Buffer(std::size_t i=0) {
+      return *fBuffers.at(i);
     }
 
     bool Finished() const {
       return fFinished;
     }
 
-    bool Empty() const {
-      return fBuffer.Empty();
+    bool Empty(std::size_t i=0) const {
+      return fBuffers.at(i)->Empty();
     }
 
-    bool TryPop(std::vector<ddasHit>& event) {
-      return fBuffer.TryPop(event);
+    bool TryPop(std::vector<ddasHit>& event,std::size_t i=0) {
+      return fBuffers.at(i)->TryPop(event);
     }
 
   protected:
@@ -41,7 +43,9 @@ class ddasLoop : public GThread {
         ddasHit hit;
         hit.set(block);
 
-        fBuffer.Push(std::move(hit));
+        auto& buffer = *fBuffers[fNextOutput];
+        buffer.Push(std::move(hit));
+        fNextOutput = (fNextOutput+1)%fBuffers.size();
         block.Clear();
         return;
       }
@@ -54,14 +58,15 @@ class ddasLoop : public GThread {
     }
 
     void Flush() override {
-      fBuffer.Flush();
+      for(auto& buffer : fBuffers)
+        buffer->Flush();
       fFinished = true;
     }
 
   private:
     evtLoop& fInput;
-    ddasBuffer fBuffer;
-
+    std::vector<std::unique_ptr<ddasBuffer> > fBuffers;
+    std::size_t fNextOutput{0};
     std::atomic<bool> fFinished{false};
 };
 

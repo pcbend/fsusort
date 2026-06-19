@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
   GChannel::ReadDetmap("cals/detmap.tsv");
 
   evtLoop  reader(argv[1], 500000); // 5 ms;
-  ddasLoop converter(reader,200);   // 10ns -> 200 = 2us
+  ddasLoop converter(reader,200,1);   // 10ns -> 200 = 2us
 
   reader.Start();
   converter.Start();
