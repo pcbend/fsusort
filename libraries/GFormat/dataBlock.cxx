@@ -37,7 +37,7 @@ void dataBlock::ClearTrace(){
 
 
 void dataBlock::Print(int opt){
-  printf("============== eventID : %llu\n", eventID);
+  printf("============== eventID : %" PRIu64 "\n", eventID);
   printf("Crate: %d, Slot: %d, Ch: %d \n", crate, slot, ch);
   printf("HeaderLength: %d, Event Length: %d, energy: %d, timeStamp: %" PRIu64 "n", headerLength, eventLength, energy, time);
   printf("trace_length: %d, pile-up:%d\n", trace_length, pileup);
