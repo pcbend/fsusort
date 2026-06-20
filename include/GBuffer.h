@@ -16,14 +16,15 @@ class dataBlockBuffer {
     explicit dataBlockBuffer(uint64_t orderingWindow = 0)
       : fOrderingWindow(orderingWindow) {}
 
-    void Push(uint64_t timestamp, dataBlock block) {
+    void Push(std::unique_ptr<dataBlock> block) {
       std::lock_guard<std::mutex> lock(fMutex);
+      const uint64_t timestamp = block->time;
       if(timestamp > fLatestTimestamp)
         fLatestTimestamp = timestamp;
       fBuffer.emplace(timestamp, std::move(block));
     }
 
-    bool TryPop(dataBlock& block) {
+    bool TryPop(std::unique_ptr<dataBlock>& block) {
       std::lock_guard<std::mutex> lock(fMutex);
 
       if(fBuffer.empty())
@@ -61,7 +62,7 @@ class dataBlockBuffer {
     }
     mutable std::mutex fMutex;
     
-    std::multimap<uint64_t, dataBlock> fBuffer;
+    std::multimap<uint64_t, std::unique_ptr<dataBlock> > fBuffer;
     bool fFlushing{false};
     uint64_t fLatestTimestamp{0};
     uint64_t fOrderingWindow{0};

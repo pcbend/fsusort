@@ -24,20 +24,37 @@ int main(int argc, char** argv) {
   converter.Start();
   physics.Start();
 
-  while(!physics.Finished()) {
-    // physicsLoop is doing the consuming/checking
-    auto s = reader.GetStats();
+int64_t lastPos = 0;
+auto lastTime = std::chrono::steady_clock::now();
 
-    printf("\rfile=%6.2f%%  blocks=%llu  skipped=%llu",
-        s.Percent(),
-        (unsigned long long)s.blocksRead,
-        (unsigned long long)s.skippedItems);
+while(!physics.Finished()) {
+  auto s = reader.GetStats();
 
-    fflush(stdout);
+  auto now = std::chrono::steady_clock::now();
+  double dt = std::chrono::duration<double>(now - lastTime).count();
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  double mbps = 0.0;
+  if(dt > 0.0)
+    mbps = (s.filePos - lastPos) / dt / 1024.0 / 1024.0;
 
-  }
+  printf("\rfile=%6.2f%%  %.1f/%.1f MB  %7.1f MB/s  blocks=%llu  skipped=%llu",
+         s.Percent(),
+         s.filePos  / 1024.0 / 1024.0,
+         s.fileSize / 1024.0 / 1024.0,
+         mbps,
+         (unsigned long long)s.blocksRead,
+         (unsigned long long)s.skippedItems);
+
+  fflush(stdout);
+
+  lastPos = s.filePos;
+  lastTime = now;
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+}
+
+printf("\n");
+
 
   physics.Stop();
   converter.Stop();

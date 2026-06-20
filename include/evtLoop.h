@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <string>
 #include <utility>
+#include <memory>
 
 #include <GThread.h>
 #include <GBuffer.h>
@@ -36,7 +37,7 @@ public:
   bool Finished() const { return fFinished; }
   bool Empty() const { return fBuffer.Empty(); }
 
-  bool TryPop(dataBlock& block) {
+  bool TryPop(std::unique_ptr<dataBlock>& block) {
     return fBuffer.TryPop(block);
   }
 
@@ -51,13 +52,13 @@ public:
 
 protected:
   void Iteration() override {
-    dataBlock block;
+    auto block = std::make_unique<dataBlock>();
 
-    const int status = fFile.ReadBlock(block, 0);
+    const int status = fFile.ReadBlock(*block, 0);
 
     if(status == 1) {
       fBlocksRead++;
-      fBuffer.Push(block.time, std::move(block));
+      fBuffer.Push(std::move(block));
       return;
     }
 

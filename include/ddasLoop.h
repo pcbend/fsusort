@@ -37,16 +37,16 @@ class ddasLoop : public GThread {
 
   protected:
     void Iteration() override {
-      dataBlock block;
+      std::unique_ptr<dataBlock> block;
 
       if(fInput.TryPop(block)) {
         ddasHit hit;
-        hit.set(block);
+        hit.set(*block);
 
         auto& buffer = *fBuffers[fNextOutput];
         buffer.Push(std::move(hit));
         fNextOutput = (fNextOutput+1)%fBuffers.size();
-        block.Clear();
+        //block->Clear();
         return;
       }
 
