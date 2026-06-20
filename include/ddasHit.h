@@ -2,7 +2,9 @@
 #define __DDASHIT_H__
 
 #include<vector>
+#include<array>
 #include<climits>
+
 
 #include<TObject.h>
 
