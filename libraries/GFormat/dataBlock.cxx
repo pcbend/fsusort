@@ -30,7 +30,9 @@ void dataBlock::ClearQDC(){
 }
 
 void dataBlock::ClearTrace(){
-  for( int i = 0 ; i < MAX_TRACE_LENGTH; i++) trace[i] = 0;
+  //for( int i = 0 ; i < MAX_TRACE_LENGTH; i++) trace[i] = 0;
+  trace_length=0;
+  trace.clear();
 }
 
 

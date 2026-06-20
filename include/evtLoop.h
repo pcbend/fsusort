@@ -53,6 +53,7 @@ public:
 protected:
   void Iteration() override {
     auto block = std::make_unique<dataBlock>();
+    //fBlock.Clear();
 
     const int status = fFile.ReadBlock(*block, 0);
 
@@ -78,7 +79,7 @@ protected:
   }
 
 private:
-  evtFile fFile;
+  evtFile         fFile;
   dataBlockBuffer fBuffer;
   std::atomic<uint64_t> fBlocksRead{0};
   std::atomic<uint64_t> fSkippedItems{0};

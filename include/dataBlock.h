@@ -3,6 +3,7 @@
 #define DATABLOCK_H
 
 #include <cstdint>
+#include <vector>
 
 #include <TObject.h>
 
@@ -36,8 +37,8 @@ class dataBlock{
 
     uint64_t eventID;
 
-    uint16_t  trace[MAX_TRACE_LENGTH];
-
+    //uint16_t  trace[MAX_TRACE_LENGTH];
+    std::vector<uint16_t> trace;
 
     uint32_t address() const { uint32_t temp = crate; return (temp<<16) + (slot<<8) + ch; }
 

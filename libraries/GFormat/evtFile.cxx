@@ -171,6 +171,7 @@ int evtFile::ReadBlock(dataBlock &data,int opt){
       //fread(traceBlock, sizeof(unsigned int) * ( data.trace_length / 2 ), 1, inFile);
       inFile.read(reinterpret_cast<char*>(traceBlock),sizeof(unsigned int) * ( data.trace_length / 2) );
       readRingItemByte += data.trace_length / 2 * 4;
+      data.trace.resize(data.trace_length);
       for( int i = 0; i < data.trace_length/2 ; i++){
         data.trace[2*i+0] =  traceBlock[i] & 0xFFFF ;
         data.trace[2*i+1] = (traceBlock[i] >> 16 ) & 0xFFFF ;
