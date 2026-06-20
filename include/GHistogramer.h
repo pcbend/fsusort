@@ -5,6 +5,7 @@
 #include<string>
 #include<map>
 #include<mutex>
+#include<cmath>
 
 #include <TFile.h>
 #include <TDirectory.h>
