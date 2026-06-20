@@ -18,7 +18,7 @@
 //#include <GPhysicsThread.h>
 //#include <GTTreeThread.h>
 
-#include <GHistogramer.h>
+//#include <GHistogramer.h>
 
 #include <globals.h>
 #include <utils.h>

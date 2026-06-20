@@ -47,30 +47,6 @@ add_subdirectory(libraries)
 
 #################
 #################
-#create the executable, we do it 'first' so the exectuable variable is avail in subdirs
-add_executable(fsusort 
-  src/fsusort.cxx
-)
-
-target_include_directories(fsusort
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/include
-  ${ROOT_INCLUDE_DIRS}
-) 
-
-target_link_libraries(fsusort 
-  PRIVATE
-    GCORE
-    GFORMAT
-    GPHYSICS
-  #GTYPES
-    GHISTOGRAMER
-  #UNPACKER
-    ${ROOT_LIBRARIES}
-)        
-
-#################
-#################
 
 add_executable(eventBuildingTest 
   src/eventBuildingTest.cxx
@@ -133,6 +109,54 @@ target_link_libraries(speedTest
     GHISTOGRAMER
     ${ROOT_LIBRARIES}
 )
+
+#################
+#################
+
+add_executable(simpleHists 
+  src/simpleHists.cxx
+)
+
+target_include_directories(simpleHists
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${ROOT_INCLUDE_DIRS}
+) 
+
+target_link_libraries(simpleHists
+  PRIVATE
+    GCORE
+    GFORMAT
+    GPHYSICS
+  #GTYPES
+    GHISTOGRAMER
+  #UNPACKER
+    ${ROOT_LIBRARIES}
+)        
+
+#################
+#################
+
+add_executable(fsusort 
+  src/fsusort.cxx
+)
+
+target_include_directories(fsusort
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}/include
+  ${ROOT_INCLUDE_DIRS}
+) 
+
+target_link_libraries(fsusort 
+  PRIVATE
+    GCORE
+    GFORMAT
+    GPHYSICS
+  #GTYPES
+    GHISTOGRAMER
+  #UNPACKER
+    ${ROOT_LIBRARIES}
+)        
 
 #################
 #################
