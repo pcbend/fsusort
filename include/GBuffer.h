@@ -71,29 +71,30 @@ class dataBlockBuffer {
 class ddasBuffer {
   public:
     explicit ddasBuffer(double buildWindow = 0.0)
-      : fBuildWindow(buildWindow) {}
+      : fBuildWindow(buildWindow) { fCurrentEvent.reserve(256); }
 
-    void Push(ddasHit hit) {
+    bool Push(ddasHit hit) {
       std::lock_guard<std::mutex> lock(fMutex);
       
       const double t = hit.GetTime();
       
       if(fCurrentEvent.empty()) {
         fCurrentStart = t;
-        fCurrentEvent.push_back(std::move(hit));
-        return;
+        fCurrentEvent.emplace_back(std::move(hit));
+        return false;
       }
 
       if(std::abs(t - fCurrentStart) <= fBuildWindow) { //GetTime is cfd corrected; abs for safety
-        fCurrentEvent.push_back(std::move(hit));
-        return;
+        fCurrentEvent.emplace_back(std::move(hit));
+        return false;
       }
 
       fBuiltEvents.push(std::move(fCurrentEvent));
       fCurrentEvent.clear();
-      
-      fCurrentEvent.push_back(std::move(hit));
+      fCurrentEvent.emplace_back(std::move(hit));
       fCurrentStart = t;
+
+      return true;
     }
 
     bool TryPop(std::vector<ddasHit>& event) {

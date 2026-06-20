@@ -8,17 +8,20 @@
 
 class dataBlock;
 
-class ddasHit : public TObject {
+class ddasHit { //: public TObject {
   public:
     ddasHit();
-    ~ddasHit();
+    ddasHit(const ddasHit&) = default;
+    ddasHit(ddasHit&&) noexcept = default;
+    virtual ~ddasHit();
 
    void setEvId(const unsigned long long EVID) { evId   = EVID; }  // evID
    void setId(const int ID)                    { id    = ID; }
    void setEnergy(const double E)              { energy = E; }
    void setTime(const double T)                { time   = T; }
    void setCFD(const double CFD)                  { cfd = CFD; }
-   void setQDC(const std::vector<int> &QDC)     { qdc = QDC; }
+   //void setQDC(const std::vector<int> &QDC)     { qdc = QDC; }
+   void setQDC(const std::array<int,8>& QDC)   { qdc = QDC; }
    void setTraceLength(const int TL)           { traceLength = TL; }
    void setTrace(const std::vector<unsigned short> &TRACE)  { trace = TRACE; }
 
@@ -29,7 +32,10 @@ class ddasHit : public TObject {
    void Clear();
    void Copy(ddasHit& lhs) const;
 
-   ddasHit operator=(ddasHit const& rhs);
+
+   ddasHit& operator=(const ddasHit&)     = default;
+   ddasHit& operator=(ddasHit&&) noexcept = default;
+   //ddasHit operator=(ddasHit const& rhs);
    bool    operator==(ddasHit const& rhs);
    bool    operator<(ddasHit const& rhs) const;
 
@@ -42,7 +48,10 @@ class ddasHit : public TObject {
     int    GetId()      const { return id;  }
 
     const std::vector<unsigned short> &GetTrace() const { return trace; }
-    const std::vector<int> &GetQDCSums() const { return qdc; }
+    //const std::vector<int> &GetQDCSums() const { return qdc; }
+    const std::array<int,8>& GetQDC() const { return qdc; }
+    bool hasQDC{false};
+
 
     void print() const;
 
@@ -54,8 +63,9 @@ class ddasHit : public TObject {
     double time;
     double cfd;
     //int qdc[8];
-    std::vector<int> qdc;
+    //std::vector<int> qdc;
     //double           cqdc
+    std::array<int,8> qdc{};
 
     int traceLength;
     std::vector<unsigned short> trace;

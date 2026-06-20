@@ -21,7 +21,8 @@ void ddasHit::Clear() {
   time   = std::numeric_limits<double>::quiet_NaN();
   cfd    = INT_MAX;
   //for(int i=0;i<8;i++) qdc[i] = INT_MAX;
-  qdc.clear();
+  qdc.fill(0);
+  hasQDC = false;
   traceLength=0;
   trace.clear();
 
@@ -32,8 +33,8 @@ void ddasHit::print() const {
   printf("\tevId:    %llu\n",evId);
   printf("\tid:      %i\n",id);
   printf("\tenergy:  %.1f\n",energy);
-  printf("\tqdcSize: %lu\n",qdc.size());
-  if(qdc.size()>0) {
+  printf("\thasQDC: %i\n", hasQDC);
+  if(hasQDC) {
     printf("\t\t");
     for(size_t i=0;i<qdc.size();i++) 
       printf("[%lu]:%i ",i,qdc.at(i));
@@ -74,7 +75,6 @@ void ddasHit::Copy(ddasHit& lhs) const {
 void ddasHit::set(const dataBlock& data) { 
 
   //GChannel::Get(data.address())->Print();
-
   // check the digitizer 
   // set correctly depending on digitizer 
   evId = data.eventID;
@@ -86,8 +86,11 @@ void ddasHit::set(const dataBlock& data) {
 
   time = static_cast<double>(data.time);
   cfd  = 0.0;
-  
-  switch(GChannel::Get(data.address())->fMHz) {
+ 
+  auto *chan = GChannel::Get(data.address());
+
+
+  switch(chan->fMHz) {
     case 100:
       if(data.cfd_forced==0) {
         cfd = static_cast<double>(data.cfd & 0x7fff)/32768.0;
@@ -118,22 +121,28 @@ void ddasHit::set(const dataBlock& data) {
   //cfd corrected time values should be time-cfd.
 
   if(data.QDCsum[0]>1) {
+    hasQDC = true;
     for( int i = 0; i < 8; i++) {
-      qdc.push_back(data.QDCsum[i]);
+      qdc[i] = data.QDCsum[i];
     }
   }
 
   traceLength = data.trace_length;
   // std::vector<unsigned short> trace;
+  if(traceLength > 0) {
+    trace.assign(data.trace.begin(), data.trace.end());
+  } else {
+    trace.clear();
+  }
 }
 
 
 
-ddasHit ddasHit::operator=(ddasHit const& rhs) {
-  ddasHit hit;
-  rhs.Copy(hit);
-  return hit;
-}
+//ddasHit ddasHit::operator=(ddasHit const& rhs) {
+//  ddasHit hit;
+//  rhs.Copy(hit);
+//  return hit;
+//}
 
 bool ddasHit::operator==(ddasHit const& rhs) {
   if( evId==rhs.evId && id==rhs.id) 

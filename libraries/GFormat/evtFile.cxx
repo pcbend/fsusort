@@ -27,6 +27,7 @@ void evtFile::OpenFile(std::string inFileName, bool isNSCL){
   }else{
     inFileSize = static_cast<size_t>(inFile.tellg());
     inFile.seekg(0,std::ios::beg);
+    inFilePos = 0;
 
     //data.Clear();
     this->isNSCL = isNSCL;
@@ -61,6 +62,147 @@ void evtFile::UpdateFileSize(){
   inFile.seekg(current);
 }
 
+int evtFile::ReadBlock(dataBlock &data, int opt) {
+
+  if(inFile.eof()) return -1;
+  if(endOfFile)   return -1;
+
+  if(isNSCL && readRingItemByte == rib_size[0]) {
+    unsigned int rih[2] = {0};
+
+    do {
+      if(!inFile.read(reinterpret_cast<char*>(rih), sizeof(rih))) {
+        endOfFile = true;
+        return -1;
+      }
+      inFilePos += sizeof(rih);
+
+      if(rih[1] != 30) {
+        inFile.seekg(rih[0] - 8, std::ios::cur);
+        inFilePos += rih[0] - 8;
+      }
+    } while(rih[1] != 30);
+
+    unsigned int ribh[5] = {0};
+
+    if(!inFile.read(reinterpret_cast<char*>(ribh), sizeof(ribh))) {
+      endOfFile = true;
+      return -1;
+    }
+    inFilePos += sizeof(ribh);
+
+    if(!inFile.read(reinterpret_cast<char*>(rib_size), sizeof(rib_size))) {
+      endOfFile = true;
+      return -1;
+    }
+    inFilePos += sizeof(rib_size);
+
+    readRingItemByte = 4;
+  }
+
+  if(isNSCL) {
+    if(rib_size[0] > 48 && readRingItemByte < rib_size[0]) {
+      constexpr size_t skipBytes = 14 * sizeof(uint32_t);
+
+      inFile.seekg(skipBytes, std::ios::cur);
+      inFilePos += skipBytes;
+      readRingItemByte += skipBytes;
+    } else {
+      return -2;
+    }
+  }
+
+  unsigned int header[4];
+
+  if(!inFile.read(reinterpret_cast<char*>(header), sizeof(header))) {
+    endOfFile = true;
+    return -1;
+  }
+
+  inFilePos += sizeof(header);
+  readRingItemByte += sizeof(header);
+  blockID++;
+
+  data.headerLength = (header[0] >> 12) & 0x1F;
+  data.eventLength  = (header[0] >> 17) & 0x3FFF;
+  data.trace_length = (header[3] >> 16) & 0x7FFF;
+
+  if(opt == 0 || opt == 2) {
+    data.eventID      = blockID;
+    data.ch           =  header[0] & 0xF;
+    data.slot         = (header[0] >> 4) & 0xF;
+    data.crate        = (header[0] >> 8) & 0xF;
+    data.pileup       =  header[0] >> 31;
+    data.time         = ((uint64_t)(header[2] & 0xFFFF) << 32) + header[1];
+    data.cfd_forced   =  header[2] >> 16 & 0x8000;
+    data.cfd_source   =  header[2] >> 16 & 0x4000;
+    data.cfd          =  header[2] >> 16 & 0xFFFF;
+    data.energy       =  header[3] & 0xFFFF;
+    data.trace_out_of_range = header[3] >> 31;
+
+    data.ClearQDC();
+    data.trace.clear();
+
+    const uint32_t extraWords =
+      data.headerLength > 4 ? data.headerLength - 4 : 0;
+
+    if(extraWords > 0) {
+      inFile.read(reinterpret_cast<char*>(extraHeader),
+                  sizeof(uint32_t) * extraWords);
+
+      inFilePos += sizeof(uint32_t) * extraWords;
+      readRingItemByte += sizeof(uint32_t) * extraWords;
+
+      if(data.headerLength == 8 || data.headerLength == 16) {
+        data.trailing = extraHeader[0];
+        data.leading  = extraHeader[1];
+        data.gap      = extraHeader[2];
+        data.baseline = extraHeader[3];
+      }
+
+      if(data.headerLength == 12 || data.headerLength == 16) {
+        int startID = data.headerLength > 12 ? 4 : 0;
+
+        for(int i = 0; i < 8; i++)
+          data.QDCsum[i] = extraHeader[i + startID];
+      }
+    } else {
+      data.trailing = 0;
+      data.leading  = 0;
+      data.gap      = 0;
+      data.baseline = 0;
+    }
+
+    const uint32_t traceWords =
+      data.eventLength > data.headerLength
+        ? data.eventLength - data.headerLength
+        : 0;
+
+    if(traceWords > 0) {
+      inFile.seekg(sizeof(uint32_t) * traceWords, std::ios::cur);
+      inFilePos += sizeof(uint32_t) * traceWords;
+      readRingItemByte += sizeof(uint32_t) * traceWords;
+    }
+  }
+
+  if(opt == 1) {
+    const uint32_t remainingWords =
+      data.eventLength > 4 ? data.eventLength - 4 : 0;
+
+    if(remainingWords > 0) {
+      inFile.seekg(sizeof(uint32_t) * remainingWords, std::ios::cur);
+      inFilePos += sizeof(uint32_t) * remainingWords;
+      readRingItemByte += sizeof(uint32_t) * remainingWords;
+    }
+  }
+
+  if(opt == 2)
+    data.Print();
+
+  return 1;
+}
+
+/*
 int evtFile::ReadBlock(dataBlock &data,int opt){
 
   if( inFile.eof() ) return -1;
@@ -169,6 +311,7 @@ int evtFile::ReadBlock(dataBlock &data,int opt){
     ///====== read trace
     if( data.eventLength > data.headerLength ){
       //fread(traceBlock, sizeof(unsigned int) * ( data.trace_length / 2 ), 1, inFile);
+
       inFile.read(reinterpret_cast<char*>(traceBlock),sizeof(unsigned int) * ( data.trace_length / 2) );
       readRingItemByte += data.trace_length / 2 * 4;
       data.trace.resize(data.trace_length);
@@ -192,7 +335,7 @@ int evtFile::ReadBlock(dataBlock &data,int opt){
         if( 175 <= i && i < 200 ) data.QDCsum[7] += data.trace[i];
         }
         }*/
-    }
+/*    }
   }
 
   if( opt == 1 ){
@@ -215,7 +358,7 @@ int evtFile::ReadBlock(dataBlock &data,int opt){
 
   return 1; 
 }
-
+*/
 
 void evtFile::ScanNumberOfBlock(){
 

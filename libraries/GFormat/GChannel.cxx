@@ -3,8 +3,8 @@
 #include <fstream>
 #include <sstream>
 
-std::map<uint32_t,GChannel*> GChannel::fAddressMap; 
-std::map<uint32_t,GChannel*> GChannel::fNumberMap; 
+std::unordered_map<uint32_t,GChannel*> GChannel::fAddressMap; 
+//std::map<uint32_t,GChannel*> GChannel::fNumberMap; 
 
 GChannel::GChannel() { } 
 
@@ -26,7 +26,7 @@ GChannel *GChannel::ParseLine(std::string line) {
   //printf("fAddress = 0x%0x\n",ch->fAddress);
 
   ch->fAddressMap[ch->fAddress] = ch;
-  ch->fNumberMap[ch->fNumber]   = ch;
+  //ch->fNumberMap[ch->fNumber]   = ch;
   return ch;
 } 
 

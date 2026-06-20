@@ -24,36 +24,63 @@ int main(int argc, char** argv) {
   converter.Start();
   physics.Start();
 
-int64_t lastPos = 0;
-auto lastTime = std::chrono::steady_clock::now();
+  int64_t lastPos = 0;
+  uint64_t lastBlocks = 0;
+  uint64_t lastHits = 0;
+  uint64_t lastEvents = 0;
 
-while(!physics.Finished()) {
-  auto s = reader.GetStats();
+  auto lastTime = std::chrono::steady_clock::now();
 
-  auto now = std::chrono::steady_clock::now();
-  double dt = std::chrono::duration<double>(now - lastTime).count();
+  std::cout << HIDE_CURSOR << std::flush;
 
-  double mbps = 0.0;
-  if(dt > 0.0)
-    mbps = (s.filePos - lastPos) / dt / 1024.0 / 1024.0;
+  while(!physics.Finished()) {
+    auto e = reader.GetStats();
+    auto d = converter.GetStats();
 
-  printf("\rfile=%6.2f%%  %.1f/%.1f MB  %7.1f MB/s  blocks=%llu  skipped=%llu",
-         s.Percent(),
-         s.filePos  / 1024.0 / 1024.0,
-         s.fileSize / 1024.0 / 1024.0,
-         mbps,
-         (unsigned long long)s.blocksRead,
-         (unsigned long long)s.skippedItems);
+    auto now = std::chrono::steady_clock::now();
+    double dt = std::chrono::duration<double>(now - lastTime).count();
 
-  fflush(stdout);
+    double mbps = 0.0;
+    double blockRate = 0.0;
+    double hitRate = 0.0;
+    double eventRate = 0.0;
 
-  lastPos = s.filePos;
-  lastTime = now;
+    if(dt > 0.0) {
+      mbps      = (e.filePos - lastPos) / dt / 1024.0 / 1024.0;
+      blockRate = (e.blocksRead - lastBlocks) / dt;
+      hitRate   = (d.hitsBuilt - lastHits) / dt;
+      eventRate = (d.eventsBuilt - lastEvents) / dt;
+    }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-}
+    printf(CLEAR_LINE "file=%6.2f%%  %.1f/%.1f MB  %7.1f MB/s\n",
+        e.Percent(),
+        e.filePos  / 1024.0 / 1024.0,
+        e.fileSize / 1024.0 / 1024.0,
+        mbps);
 
-printf("\n");
+    printf(CLEAR_LINE "blocks=%llu (%7.0f/s)  hits=%llu (%7.0f/s)  events=%llu (%7.0f/s)",
+        (unsigned long long)e.blocksRead,
+        blockRate,
+        (unsigned long long)d.hitsBuilt,
+        hitRate,
+        (unsigned long long)d.eventsBuilt,
+        eventRate);
+
+    fflush(stdout);
+
+    printf(CURSOR_UP);
+    fflush(stdout);
+
+    lastPos = e.filePos;
+    lastBlocks = e.blocksRead;
+    lastHits = d.hitsBuilt;
+    lastEvents = d.eventsBuilt;
+    lastTime = now;
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+
+  printf(CURSOR_DOWN "\n" SHOW_CURSOR);
 
 
   physics.Stop();

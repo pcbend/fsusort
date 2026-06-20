@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <map>
+#include <unordered_map>
 
 #include <TObject.h>
 
@@ -20,7 +20,10 @@ class GChannel {
     static void ReadDetmap(std::string fname); 
     static GChannel *ParseLine(std::string line);
     static int  Size() { return fAddressMap.size(); }
-    static GChannel* Get(uint32_t address) { return fAddressMap[address]; }
+    static GChannel* Get(uint32_t address) { 
+      auto it = fAddressMap.find(address);
+      if(it==fAddressMap.end()) return nullptr;
+      return it->second; }
 
 
   //private:
@@ -38,8 +41,8 @@ class GChannel {
 
     
 
-    static std::map<uint32_t,GChannel*> fAddressMap; 
-    static std::map<uint32_t,GChannel*> fNumberMap; 
+    static std::unordered_map<uint32_t,GChannel*> fAddressMap; 
+    //static std::map<uint32_t,GChannel*> fNumberMap; 
 
   ClassDef(GChannel,0)
 };

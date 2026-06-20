@@ -115,6 +115,28 @@ target_link_libraries(physicsTest
 #################
 #################
 
+add_executable(speedTest 
+  src/speedTest.cxx
+)
+
+target_include_directories(speedTest  
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${ROOT_INCLUDE_DIRS}
+)
+
+target_link_libraries(speedTest
+  PRIVATE
+    GCORE
+    GFORMAT
+    GPHYSICS
+    GHISTOGRAMER
+    ${ROOT_LIBRARIES}
+)
+
+#################
+#################
+
 string(ASCII 27 Esc)
 set(RED     "${Esc}[31m")
 set(GREEN   "${Esc}[32m")
