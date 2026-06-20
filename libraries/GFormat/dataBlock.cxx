@@ -1,6 +1,6 @@
 #include <dataBlock.h>
 #include <cstdio>
-
+#include <cinttypes>
 
 void dataBlock::Clear(){
   ch                 = 0;
@@ -39,7 +39,7 @@ void dataBlock::ClearTrace(){
 void dataBlock::Print(int opt){
   printf("============== eventID : %llu\n", eventID);
   printf("Crate: %d, Slot: %d, Ch: %d \n", crate, slot, ch);
-  printf("HeaderLength: %d, Event Length: %d, energy: %d, timeStamp: %llu\n", headerLength, eventLength, energy, time);
+  printf("HeaderLength: %d, Event Length: %d, energy: %d, timeStamp: %" PRIu64 "n", headerLength, eventLength, energy, time);
   printf("trace_length: %d, pile-up:%d\n", trace_length, pileup);
   printf("CFD : %d , Forced : %d , Source : %d\n", cfd, cfd_forced, cfd_source);
   if( headerLength > 4 ){
