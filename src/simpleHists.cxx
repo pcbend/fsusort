@@ -108,6 +108,8 @@ int main(int argc, char** argv) {
   converter.Stop();
   reader.Stop();
 
+  GHistogramer::Get().Close();
+
   return 0;
 }
 
@@ -162,7 +164,7 @@ void MakeHistograms(const std::vector<ddasHit> &event) {
                    hit.GetQDC()[5];
       double sub = hit.GetQDC()[0] +             
                    hit.GetQDC()[1];             
-      GHistogramer::Get().Fill("QDCsummary",16000,0,16000,add-sub,
+      GHistogramer::Get().Fill("QDCsummary",16000,0,0,add-sub,   // zero-zero are auto limits
                                           300,0,300,hit.GetId());
     }
   }

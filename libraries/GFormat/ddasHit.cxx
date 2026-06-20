@@ -120,12 +120,21 @@ void ddasHit::set(const dataBlock& data) {
 
   //cfd corrected time values should be time-cfd.
 
-  if(data.QDCsum[0]>1) {
-    hasQDC = true;
-    for( int i = 0; i < 8; i++) {
-      qdc[i] = data.QDCsum[i];
-    }
-  }
+  //if(data.QDCsum[0]>1) {
+  //  hasQDC = true;
+  //  for( int i = 0; i < 8; i++) {
+  //    qdc[i] = data.QDCsum[i];
+  //  }
+  //}
+hasQDC = (data.headerLength == 12 || data.headerLength == 16);
+
+if(hasQDC) {
+  for(int i = 0; i < 8; ++i)
+    qdc[i] = data.QDCsum[i];
+}
+
+
+
 
   traceLength = data.trace_length;
   // std::vector<unsigned short> trace;
