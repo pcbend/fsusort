@@ -378,7 +378,7 @@ void evtFile::ScanNumberOfBlock(){
   }
 
   printf("\n\n\n");
-  printf("scan complete: number of data Block : %lld\n", nBlock);
+  printf("scan complete: number of data Block : %ld\n", nBlock);
 
   inFilePos = 0;
   blockID = -1;
