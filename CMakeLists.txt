@@ -93,6 +93,28 @@ target_link_libraries(eventBuildingTest
 #################
 #################
 
+add_executable(physicsTest 
+  src/physicsTest.cxx
+)
+
+target_include_directories(physicsTest  
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${ROOT_INCLUDE_DIRS}
+)
+
+target_link_libraries(physicsTest
+  PRIVATE
+    GCORE
+    GFORMAT
+    GPHYSICS
+    GHISTOGRAMER
+    ${ROOT_LIBRARIES}
+)
+
+#################
+#################
+
 string(ASCII 27 Esc)
 set(RED     "${Esc}[31m")
 set(GREEN   "${Esc}[32m")

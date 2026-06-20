@@ -17,6 +17,8 @@ class GDetector {
 
     virtual int BuildHits() =0;
     void InsertHit(const ddasHit &hit) { fRawHits.emplace_back(hit); }
+    void Clear() { fRawHits.clear(); }
+
   //private:
     std::vector<ddasHit> fRawHits; //!
 
