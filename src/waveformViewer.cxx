@@ -44,30 +44,29 @@ int main(int argc, char** argv) {
 
   GWaveViewer viewer(converter);
 
-viewer.Draw();
+  viewer.Draw();
 
-std::string line;
+  std::string line;
 
-while(true) {
-  std::cout << "[ENTER] next waveform, q to quit: ";
-
-  std::getline(std::cin, line);
-
-  if(line == "q" || line == "Q")
-    break;
-
-  if(!viewer.Next()) {
-    std::cout << "No more traces.\n";
-    break;
+  printf("QDC:\n");
+  for(int i=0;i<8;i++) { 
+    printf("\t[%i]:\t%i\n",i,viewer.GetCurrentHit().GetQDC()[i]); 
   }
-}
 
 
+  while(true) {
+    std::cout << "[ENTER] next waveform, q to quit: ";
 
+    std::getline(std::cin, line);
 
+    if(line == "q" || line == "Q")
+      break;
 
-
-
+    if(!viewer.Next()) {
+      std::cout << "No more traces.\n";
+      break;
+    }
+  }
 
   converter.Stop();
   reader.Stop();

@@ -19,6 +19,8 @@ class GWaveViewer {
     void Draw();
     bool Next();
 
+    ddasHit &GetCurrentHit() { return fCurrentHit; } 
+
   private:
     bool GetNextTrace(ddasHit& hit);
     void DrawHit(const ddasHit& hit);
