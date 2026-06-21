@@ -19,7 +19,8 @@ int main(int argc, char** argv) {
 
   TApplication app("waveformViewer", &argc, argv);
 
-  GChannel::ReadDetmap("cals/detmap.tsv");
+  std::string homedir = std::getenv("HOME");
+  GChannel::ReadDetmap(Form("%s/Packages/FSUSort/cals/detmap.tsv",homedir.c_str()));
 
   evtLoop  reader(filename, 500000);
   ddasLoop converter(reader, 200, 1);
