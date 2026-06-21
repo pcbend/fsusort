@@ -55,14 +55,14 @@ int main(int argc, char** argv) {
     //for(int i=0;i<8;i++) { 
     //  printf("\t[%i]:\t%i\n",i,viewer.GetCurrentHit().GetQDC()[i]); 
     //}
-      printf("\t[0]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/31.); 
-      printf("\t[1]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/29.); 
-      printf("\t[2]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/15.); 
-      printf("\t[3]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/20.); 
-      printf("\t[4]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/10.); 
-      printf("\t[5]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/55.); 
-      printf("\t[6]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/15.); 
-      printf("\t[7]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[i],viewer.GetCurrentHit().GetQDC()[i]/25.); 
+      printf("\t[0]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[0],viewer.GetCurrentHit().GetQDC()[0]/31.); 
+      printf("\t[1]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[1],viewer.GetCurrentHit().GetQDC()[1]/29.); 
+      printf("\t[2]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[2],viewer.GetCurrentHit().GetQDC()[2]/15.); 
+      printf("\t[3]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[3],viewer.GetCurrentHit().GetQDC()[3]/20.); 
+      printf("\t[4]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[4],viewer.GetCurrentHit().GetQDC()[4]/10.); 
+      printf("\t[5]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[5],viewer.GetCurrentHit().GetQDC()[5]/55.); 
+      printf("\t[6]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[6],viewer.GetCurrentHit().GetQDC()[6]/15.); 
+      printf("\t[7]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[7],viewer.GetCurrentHit().GetQDC()[7]/25.); 
   
     std::cout << "[ENTER] next waveform, q to quit: ";
 
