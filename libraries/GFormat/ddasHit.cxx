@@ -117,6 +117,7 @@ void ddasHit::set(const dataBlock& data) {
     default:
       break;
   }
+  setForceCFD(data.cfd_forced);
 
   //cfd corrected time values should be time-cfd.
 

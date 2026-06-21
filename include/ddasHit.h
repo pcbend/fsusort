@@ -26,8 +26,10 @@ class ddasHit { //: public TObject {
    void setQDC(const std::array<int,8>& QDC)   { qdc = QDC; }
    void setTraceLength(const int TL)           { traceLength = TL; }
    void setTrace(const std::vector<unsigned short> &TRACE)  { trace = TRACE; }
+   void setForceCFD(const bool forced)         { forcedCFD = forced; }
 
    void set(const dataBlock& data);
+
 
    //void SetCustomQDC(const val)  { cqdc = val; }
 
@@ -48,6 +50,7 @@ class ddasHit { //: public TObject {
     double GetTime()    const { return time  +cfd; }//+ cfd/16384.; }
     double GetCFDTime() const { return cfd; }
     int    GetId()      const { return id;  }
+    bool   GetForcedCFD() const { return forcedCFD; }
 
     const std::vector<unsigned short> &GetTrace() const { return trace; }
     //const std::vector<int> &GetQDCSums() const { return qdc; }
@@ -64,10 +67,12 @@ class ddasHit { //: public TObject {
     double energy;
     double time;
     double cfd;
+    bool   forcedCFD;
     //int qdc[8];
     //std::vector<int> qdc;
     //double           cqdc
     std::array<int,8> qdc{};
+
 
     int traceLength;
     std::vector<unsigned short> trace;
