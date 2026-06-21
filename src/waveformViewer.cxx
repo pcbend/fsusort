@@ -48,13 +48,14 @@ int main(int argc, char** argv) {
 
   std::string line;
 
-  printf("QDC:\n");
-  for(int i=0;i<8;i++) { 
-    printf("\t[%i]:\t%i\n",i,viewer.GetCurrentHit().GetQDC()[i]); 
-  }
 
 
   while(true) {
+    printf("QDC:\n");
+    for(int i=0;i<8;i++) { 
+      printf("\t[%i]:\t%i\n",i,viewer.GetCurrentHit().GetQDC()[i]); 
+    }
+  
     std::cout << "[ENTER] next waveform, q to quit: ";
 
     std::getline(std::cin, line);
