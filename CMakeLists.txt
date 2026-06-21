@@ -113,54 +113,6 @@ target_link_libraries(speedTest
 #################
 #################
 
-add_executable(simpleHists 
-  src/simpleHists.cxx
-)
-
-target_include_directories(simpleHists
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/include
-  ${ROOT_INCLUDE_DIRS}
-) 
-
-target_link_libraries(simpleHists
-  PRIVATE
-    GCORE
-    GFORMAT
-    GPHYSICS
-  #GTYPES
-    GHISTOGRAMER
-  #UNPACKER
-    ${ROOT_LIBRARIES}
-)        
-
-#################
-#################
-
-add_executable(fsusort 
-  src/fsusort.cxx
-)
-
-target_include_directories(fsusort
-  PRIVATE
-  ${CMAKE_SOURCE_DIR}/include
-  ${ROOT_INCLUDE_DIRS}
-) 
-
-target_link_libraries(fsusort 
-  PRIVATE
-    GCORE
-    GFORMAT
-    GPHYSICS
-  #GTYPES
-    GHISTOGRAMER
-  #UNPACKER
-    ${ROOT_LIBRARIES}
-)        
-
-#################
-#################
-
 string(ASCII 27 Esc)
 set(RED     "${Esc}[31m")
 set(GREEN   "${Esc}[32m")
@@ -170,12 +122,53 @@ set(MAGENTA "${Esc}[35m")
 set(CYAN    "${Esc}[36m")
 set(RESET   "${Esc}[0m")
 
+#add_custom_command(
+#  TARGET fsusort
+#  POST_BUILD
+#  COMMAND ${CMAKE_COMMAND} -E echo "-----------------------------------"
+#  COMMAND ${CMAKE_COMMAND} -E echo "${CYAN} fsusort build done, ${YELLOW} woo hoo! ${RESET}"
+#  COMMAND ${CMAKE_COMMAND} -E echo "-----------------------------------"
+#)
+
+
+#################
+#################
+
+function(add_fsu_executable target source)
+  add_executable(${target} ${source} ) 
+
+  target_include_directories(${target}
+    PRIVATE
+      ${CMAKE_SOURCE_DIR}/include
+      ${ROOT_INCLUDE_DIRS}
+  ) 
+      
+  
+  target_link_libraries(${target}
+    PRIVATE
+      GCORE
+      GFORMAT
+      GPHYSICS
+      #GTYPES
+      GHISTOGRAMER
+      GVIEWER
+      #UNPACKER
+      ${ROOT_LIBRARIES}
+  )        
+
 add_custom_command(
-  TARGET fsusort
+  TARGET ${target}
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E echo "-----------------------------------"
-  COMMAND ${CMAKE_COMMAND} -E echo "${CYAN} fsusort build done, ${YELLOW} woo hoo! ${RESET}"
+  COMMAND ${CMAKE_COMMAND} -E echo "${CYAN} ${target} build done, ${YELLOW} woo hoo! ${RESET}"
   COMMAND ${CMAKE_COMMAND} -E echo "-----------------------------------"
 )
 
+endfunction()
 
+add_fsu_executable(fsusort           src/fsusort.cxx)
+add_fsu_executable(simpleHists       src/simpleHists.cxx)
+#add_fsu_executable(speedTest         src/speedTest.cxx)
+#add_fsu_executable(physicsTest       src/physicsTest.cxx)
+#add_fsu_executable(eventBuildingTest src/eventBuildingTest.cxx)
+add_fsu_executable(waveformViewer    src/waveformViewer.cxx)
