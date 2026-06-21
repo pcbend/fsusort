@@ -43,15 +43,31 @@ int main(int argc, char** argv) {
   converter.Start();
 
   GWaveViewer viewer(converter);
-  viewer.Draw();
 
-  gViewer = &viewer;
+viewer.Draw();
 
-  if(gPad && gPad->GetCanvas())
-    gPad->GetCanvas()->AddExec("nextwave", "NextWaveformOnClick();");
+std::string line;
+
+while(true) {
+  std::cout << "[ENTER] next waveform, q to quit: ";
+
+  std::getline(std::cin, line);
+
+  if(line == "q" || line == "Q")
+    break;
+
+  if(!viewer.Next()) {
+    std::cout << "No more traces.\n";
+    break;
+  }
+}
 
 
-  app.Run();
+
+
+
+
+
 
   converter.Stop();
   reader.Stop();
