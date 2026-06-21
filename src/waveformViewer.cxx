@@ -9,6 +9,20 @@
 #include <GChannel.h>
 #include <GWaveViewer.h>
 
+#include <TVirtualPad.h>
+#include <TCanvas.h>
+
+static GWaveViewer* gViewer = nullptr;
+
+void NextWaveformOnClick() {
+  if(!gViewer || !gPad)
+    return;
+
+  if(gPad->GetEvent() == kButton1Down)
+    gViewer->Next();
+}
+
+
 int main(int argc, char** argv) {
   if(argc < 2) {
     std::cerr << "usage: waveformViewer file.evt\n";
@@ -30,6 +44,12 @@ int main(int argc, char** argv) {
 
   GWaveViewer viewer(converter);
   viewer.Draw();
+
+  gViewer = &viewer;
+
+  if(gPad && gPad->GetCanvas())
+    gPad->GetCanvas()->AddExec("nextwave", "NextWaveformOnClick();");
+
 
   app.Run();
 
