@@ -58,14 +58,15 @@ int main(int argc, char** argv) {
       if(viewer.GetCurrentHit().GetForcedCFD()) printf(RED);
       printf("forced CFD: %i\n",viewer.GetCurrentHit().GetForcedCFD());
       if(viewer.GetCurrentHit().GetForcedCFD()) printf(RESET_COLOR);
-      printf("\t[0]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[0],viewer.GetCurrentHit().GetQDC()[0]/31.); 
-      printf("\t[1]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[1],viewer.GetCurrentHit().GetQDC()[1]/29.); 
-      printf("\t[2]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[2],viewer.GetCurrentHit().GetQDC()[2]/15.); 
-      printf("\t[3]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[3],viewer.GetCurrentHit().GetQDC()[3]/20.); 
-      printf("\t[4]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[4],viewer.GetCurrentHit().GetQDC()[4]/10.); 
-      printf("\t[5]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[5],viewer.GetCurrentHit().GetQDC()[5]/55.); 
-      printf("\t[6]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[6],viewer.GetCurrentHit().GetQDC()[6]/15.); 
-      printf("\t[7]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[7],viewer.GetCurrentHit().GetQDC()[7]/25.); 
+      printf("QDC1 - QDC0:  %i\n",viewer.GetCurrentHit().GetQDC()[1]-viewer.GetCurrentHit().GetQDC()[0]); 
+      printf("\t[0]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[0],viewer.GetCurrentHit().GetQDC()[0]/1.); 
+      printf("\t[1]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[1],viewer.GetCurrentHit().GetQDC()[1]/1.); 
+      printf("\t[2]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[2],viewer.GetCurrentHit().GetQDC()[2]/1.); 
+      printf("\t[3]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[3],viewer.GetCurrentHit().GetQDC()[3]/1.); 
+      printf("\t[4]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[4],viewer.GetCurrentHit().GetQDC()[4]/1.); 
+      printf("\t[5]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[5],viewer.GetCurrentHit().GetQDC()[5]/1.); 
+      printf("\t[6]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[6],viewer.GetCurrentHit().GetQDC()[6]/1.); 
+      printf("\t[7]:\t%i\t%.02f\n",viewer.GetCurrentHit().GetQDC()[7],viewer.GetCurrentHit().GetQDC()[7]/1.); 
   
     std::cout << "[ENTER] next waveform, q to quit: ";
 

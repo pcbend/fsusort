@@ -25,7 +25,7 @@ void ddasHit::Clear() {
   hasQDC = false;
   traceLength=0;
   trace.clear();
-
+  forcedCFD = false;
 }
 
 void ddasHit::print() const {

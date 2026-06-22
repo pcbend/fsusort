@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 //  const std::array<int,8>           &GetQDC() const { return qdc; }
 //  bool hasQDC{false};
 
-// QDC INFO
+// QDC INFO (Trinity)
 // 0 - baseline far   31   
 // 1 - baseline near  29   (60)
 // 2 - pre-peak       15
@@ -150,24 +150,63 @@ int main(int argc, char** argv) {
 // 6 - post-tail      15 
 // 7 - post-post tail (basline) 25 
 
+
+// QDC INFO (Fast Timing) (timestamp units)
+// 0 - baseline     100
+// 1 - single       100
+// 2 - tail          40
+// 3 - fixed-window  40
+// 4 - fixed-window  40
+// 5 - fixed-window  40
+// 6 - fixed-window  20 ?
+// 7 - fixed-window  20 ?
+
+
+
 // API for filling histograms in include/GHistogramer.h 
 
 //fill histograms here. 
 void MakeHistograms(const std::vector<ddasHit> &event) {
+ 
+  double time1 =-1;
+  double time2 =-1;
+
   for(auto hit : event) {
+    
+    if(hit.GetId()>=202 && hit.GetId() <=206) {
+      if(time1<0) time1 = hit.GetTime();
+      if(time1>0) time2 = hit.GetTime();
+    }
+
+
     GHistogramer::Get().Fill("summary",16000,0,16000,hit.GetEnergy(),
                                        300,0,300,hit.GetId());
-    if(hit.hasQDC) { 
-      double add = hit.GetQDC()[2] + 
-                   hit.GetQDC()[3] + 
-                   hit.GetQDC()[4] + 
-                   hit.GetQDC()[5];
-      double sub = hit.GetQDC()[0] +             
-                   hit.GetQDC()[1];             
-      GHistogramer::Get().Fill("QDCsummary",16000,0,0,add-sub,   // zero-zero are auto limits
+    
+    GHistogramer::Get().Fill(Form("singles/det%03i",hit.GetId()),16000,0,16000,hit.GetEnergy());
+    
+    
+    if(hit.GetId()>=194) {
+      if(hit.GetForcedCFD()) { 
+    	GHistogramer::Get().Fill(Form("Forced_%i",hit.GetId()),10,0,10,2);
+      } else {
+    	GHistogramer::Get().Fill(Form("Forced_%i",hit.GetId()),10,0,10,4);
+      }
+    }
+
+
+    if(hit.hasQDC && !hit.GetForcedCFD()) { 
+      double add = hit.GetQDC()[2] + hit.GetQDC()[3]; 
+      double sub = hit.GetQDC()[1];             
+      GHistogramer::Get().Fill("QDCsummary",16000,0,0,add-sub*(140./100.) ,   // zero-zero are auto limits
+      //GHistogramer::Get().Fill("QDCsummary",16000,0,0,add  -sub,   // zero-zero are auto limits
                                           300,0,300,hit.GetId());
     }
   }
+
+  if(time1>0 && time2>0 && time1!=time2) {
+   GHistogramer::Get().Fill("dt",20000,-100,100,time1-time2);
+  }	  
+
 }
 
 
@@ -175,7 +214,5 @@ void MakeHistograms(const std::vector<ddasHit> &event) {
 //////////////////////////////
 //////////////////////////////
 //////////////////////////////
-
-
 
 
