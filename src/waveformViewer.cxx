@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     //}
 
       printf("\tGetTimestamp() = %.04f\n",viewer.GetCurrentHit().GetTimestamp());
-      printf("\tGetCFDTimes()  = %.04f\n",viewer.GetCurrentHit().GetCFDTime());
+      printf("\tGetCFD()       = %.04f\n",viewer.GetCurrentHit().GetCFD());
       printf("\tGetTime()      = %.04f\n",viewer.GetCurrentHit().GetTime());
 
 

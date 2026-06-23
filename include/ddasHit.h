@@ -49,14 +49,14 @@ class ddasHit { //: public TObject {
 
   public:
     uint32_t GetAddress()  const { return address; }
-    double GetCharge()  const { return charge; }
-    double GetEcal()    const { return ecal; }
+    double GetCharge()     const { return charge; }
+    double GetEcal()       const { return ecal; }
     //double GetTime()    const { return time; }//+ cfd/16384.; }
-    double GetTime()    const { return time  +cfd; }//+ cfd/16384.; }
-    double GetTimestamp()    const { return time; }//+ cfd/16384.; }
-    double GetCFDTime() const { return cfd; }
-    int    GetId()      const { return id;  }
-    bool   GetForcedCFD() const { return forcedCFD; }
+    double GetTime()       const { return time  +cfd; }//+ cfd/16384.; }
+    double GetTimestamp()  const { return time; }//+ cfd/16384.; }
+    double GetCFD()        const { return cfd; }
+    int    GetId()         const { return id;  }
+    bool   GetForcedCFD()  const { return forcedCFD; }
 
     const std::vector<unsigned short> &GetTrace() const { return trace; }
     //const std::vector<int> &GetQDCSums() const { return qdc; }

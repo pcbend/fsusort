@@ -3,13 +3,38 @@
 
 #include<GDetector.h>
 
+class ddasHit;
+
+class ClarionHit {
+  public: 
+    ClarionHit() { }   
+    ~ClarionHit() { } 
+
+    bool Build(const ddasHit&);
+    void Clear();
+
+  //private:
+    int16_t   id;
+    uint32_t  address;
+    double    ecal;
+    double    time;
+    double    timestamp;
+    double    cfd;
+
+  ClassDef(ClarionHit,1)
+};
+
+
+
 class Clarion : public GDetector {
   public:
     Clarion();
     virtual ~Clarion();
 
-    int BuildHits() override; 
-  private:
+    void Clear();
+    int  BuildHits() override; 
+  //private:
+    std::vector<ClarionHit> hits;
 
   ClassDefOverride(Clarion,1)
 };

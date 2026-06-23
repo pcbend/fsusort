@@ -32,7 +32,7 @@ void ddasHit::Clear() {
 }
 
 void ddasHit::print() const {
-  printf("ddas hit @ %f\n", GetTime()+GetCFDTime()/16384.);
+  printf("ddas hit @ %f\n", GetTime()+GetCFD());
   printf("\tevId:    %llu\n",evId);
   printf("\tid:      %i\n",id);
   printf("\tcharge:  %.1f\n",charge);
