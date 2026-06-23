@@ -8,7 +8,7 @@
 #include<GChannel.h>
 #include<globals.h>
 
-#include <TRandom.h>
+#include <TRandom3.h>
 
 ddasHit::ddasHit() { Clear(); }
 
@@ -83,7 +83,9 @@ bool ddasHit::Calibrate(const GChannel *channel) const  {
   if(!channel)
     return false;
   
-  double temp = charge + gRandom->Uniform();  
+  static TRandom3 rng(0);
+  double temp = charge + rng.Uniform();  
+  
   int counter=0; 
   for(const auto par : channel->fCalPars) {
     ecal += par*std::pow(temp,counter);

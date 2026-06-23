@@ -25,6 +25,7 @@ root_generate_dictionary(G__GFormat
 target_link_libraries(GFORMAT 
   PUBLIC
     ROOT::Core
+    ROOT::MathCore
 )
 
 
