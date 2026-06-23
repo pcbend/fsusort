@@ -30,9 +30,13 @@ class GintOptions {
     static void AddEVTFile(std::string fname)     { fEVTFiles.push_back(fname); }
     static std::vector<std::string> GetEVTFiles() { return fEVTFiles; }
 
+    static void SetQuitAfterSort(bool val)  { fQuitAfterSort = val; }
+    static bool QuitAfterSort()             { return fQuitAfterSort; }
+
   private:
     static std::vector<std::string> fGEBFiles;
     static std::vector<std::string> fEVTFiles;
+    static bool fQuitAfterSort;
 
 };
 

@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <globals.h>
+
 std::unordered_map<uint32_t,GChannel*> GChannel::fAddressMap; 
 //std::map<uint32_t,GChannel*> GChannel::fNumberMap; 
 
@@ -37,14 +39,15 @@ void GChannel::ReadDetmap(std::string fname) {
   std::string line;
   std::ifstream infile;
   infile.open(fname.c_str());
-
+  int counter=0;
   while(std::getline(infile,line)) {
     if(line.length()<1) continue;
     if(line[0]=='#') continue;
     ParseLine(line);
+    counter++;
     //printf("line: %s\n",line.c_str());
   }
-
+  printf(BLUE "\tloaded %i channels from %s" RESET_COLOR "\n",counter,fname.c_str());
 
 }
 

@@ -22,6 +22,7 @@ root_generate_dictionary(G__GCore
 
 target_link_libraries(GCORE 
   PUBLIC
+    GPIPELINE
     ROOT::Core
     ROOT::Rint
     ROOT::RIO

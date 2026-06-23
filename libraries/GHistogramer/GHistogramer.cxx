@@ -3,6 +3,14 @@
 #include <utils.h>
 #include <TROOT.h>
 
+struct GHistogramer::ThreadHistogramStore {
+  explicit ThreadHistogramStore(uint64_t generation)
+    : generation(generation) {}
+
+  uint64_t generation;
+  std::unordered_map<std::string, std::unique_ptr<TH1>> histograms;
+};
+
 GHistogramer& GHistogramer::Get() {
   static GHistogramer instance;
   return instance;
@@ -15,25 +23,28 @@ GHistogramer::GHistogramer() {
 GHistogramer::~GHistogramer() = default;
 
 void GHistogramer::Close() { 
-  //for(auto& d : fDirCache)
-  // if(auto *keys = d.second->GetListOfKeys()) keys->Sort();
-
   std::lock_guard<std::mutex> lock(fMutex);
 
+  if(fClosed)
+    return;
+
+  MergeHistogramsLocked();
+
   if(fBaseDir && fBaseDir->InheritsFrom(TFile::Class())) {
-    TFile *file = static_cast<TFile*>(fBaseDir); //->Write();
+    TFile *file = static_cast<TFile*>(fBaseDir);
     file->GetList()->Sort();
     file->Write();
     file->Close();
-    //SetBaseDirectory("");
   }
+
+  fClosed = true;
   printf("histogramer closed.\n");
 }
 
 void GHistogramer::SetBaseDirectory(TDirectory* dir) { 
   std::lock_guard<std::mutex> lock(fMutex);
   fBaseDir = dir ? dir : gROOT;
-  fDirCache.clear();
+  ResetHistogramsLocked();
 }
 
 void GHistogramer::SetOutFile(const std::string& fname,const std::string& option) {
@@ -80,43 +91,118 @@ TH1* GHistogramer::Create(TDirectory* dir, const std::string& name,
 void GHistogramer::Fill(const std::string& pathName,        
                         int xbins,double xlow,double xhigh,double xvalue,       
                         int ybins,double ylow,double yhigh,double yvalue) {
-  std::lock_guard<std::mutex> lock(fMutex);
-  TH1* hist = 0;
-  auto it = fH1.find(pathName);
-  if(it==fH1.end()) {
-    std::string path="";
-    auto parts = tokenizeString(pathName);
-    std::string name = parts.back();
-    if(parts.size()>1) {
-      path=parts[0];
-      for(size_t i=1;i<parts.size()-1;i++) {
-        path += "/";
-        path += parts[i];
+  auto store = GetThreadHistogramStore();
+  auto it = store->histograms.find(pathName);
+
+  if(it == store->histograms.end()) {
+    const HistogramDefinition definition{xbins, xlow, xhigh, ybins, ylow, yhigh};
+    std::lock_guard<std::mutex> lock(fMutex);
+
+    auto [definitionIt, inserted] = fDefinitions.emplace(pathName, definition);
+    if(!inserted) {
+      const auto& existing = definitionIt->second;
+      if(existing.xbins != definition.xbins ||
+         existing.xlow != definition.xlow ||
+         existing.xhigh != definition.xhigh ||
+         existing.ybins != definition.ybins ||
+         existing.ylow != definition.ylow ||
+         existing.yhigh != definition.yhigh) {
+        printf("Histogram '%s' was requested with different binning; using its original definition.\n",
+               pathName.c_str());
       }
     }
-    TDirectory *dir = GetDirectory(path);
-    hist = Create(dir,name,xbins,xlow,xhigh,ybins,ylow,yhigh);
-    fH1[pathName] = hist;
-  } else {
-    hist = it->second;
+
+    auto histogram = std::unique_ptr<TH1>(CreateHistogram(pathName, definitionIt->second));
+    it = store->histograms.emplace(pathName, std::move(histogram)).first;
   }
+
+  TH1* hist = it->second.get();
   if(ybins>0) 
     hist->Fill(xvalue,yvalue);
   else 
     hist->Fill(xvalue);
 }
 
+std::shared_ptr<GHistogramer::ThreadHistogramStore>
+GHistogramer::GetThreadHistogramStore() {
+  static thread_local std::unordered_map<GHistogramer*,
+                                         std::shared_ptr<ThreadHistogramStore>> stores;
 
-void GHistogramer::Print(Option_t *opt) const {
-  int counter =0;
-  for(auto item : fH1) {
-    printf("%i:    {%s,0x%p}\n",counter++,item.first.c_str(),item.second);
+  const uint64_t generation = fGeneration.load(std::memory_order_acquire);
+  auto it = stores.find(this);
+  if(it != stores.end() && it->second->generation == generation)
+    return it->second;
+
+  auto store = std::make_shared<ThreadHistogramStore>(generation);
+  {
+    std::lock_guard<std::mutex> lock(fMutex);
+    fThreadStores.push_back(store);
   }
+  stores[this] = store;
+  return store;
+}
 
+TH1* GHistogramer::CreateHistogram(const std::string& pathName,
+                                   const HistogramDefinition& definition) {
+  const auto parts = tokenizeString(pathName);
+  return Create(nullptr, parts.back(),
+                definition.xbins, definition.xlow, definition.xhigh,
+                definition.ybins, definition.ylow, definition.yhigh);
+}
+
+void GHistogramer::ResetHistogramsLocked() {
+  fH1.clear();
+  fDirCache.clear();
+  fDefinitions.clear();
+  fThreadStores.clear();
+  fClosed = false;
+  fGeneration.fetch_add(1, std::memory_order_release);
+}
+
+void GHistogramer::MergeHistogramsLocked() {
+  fH1.clear();
+
+  for(const auto& [pathName, definition] : fDefinitions) {
+    std::string path;
+    const auto parts = tokenizeString(pathName);
+    const std::string& name = parts.back();
+    if(parts.size() > 1) {
+      path = parts.front();
+      for(size_t i = 1; i + 1 < parts.size(); ++i)
+        path += "/" + parts[i];
+    }
+
+    TH1* merged = nullptr;
+    for(const auto& store : fThreadStores) {
+      auto it = store->histograms.find(pathName);
+      if(it == store->histograms.end())
+        continue;
+
+      if(!merged) {
+        merged = it->second.release();
+        merged->SetDirectory(GetDirectory(path));
+      } else {
+        merged->Add(it->second.get());
+      }
+    }
+
+    if(!merged) {
+      merged = Create(GetDirectory(path), name,
+                      definition.xbins, definition.xlow, definition.xhigh,
+                      definition.ybins, definition.ylow, definition.yhigh);
+    }
+    fH1[pathName] = merged;
+  }
 }
 
 
+void GHistogramer::Print(Option_t *opt) const {
+  int counter =0;
+  for(const auto& item : fDefinitions) {
+    printf("%i:    {%s}\n",counter++,item.first.c_str());
+  }
 
+}
 
 
 

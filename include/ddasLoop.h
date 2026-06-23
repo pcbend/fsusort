@@ -15,14 +15,18 @@ struct ddasStats {
   uint64_t blocksIn{0};      // dataBlocks consumed
   uint64_t hitsBuilt{0};     // ddasHits created
   uint64_t eventsBuilt{0};   // vectors sent to output buffers
+  uint64_t bufferedEvents{0};
+  uint64_t maxBufferedEvents{0};
 };
 
 class ddasLoop : public GThread {
   public:
-    ddasLoop(evtLoop& input, double buildWindow = 0.0,uint32_t nOutputs=1)
+    ddasLoop(evtLoop& input, double buildWindow = 0.0,
+             uint32_t nOutputs = 1, std::size_t maxBufferedEvents = 4096)
       : fInput(input) {
       for(uint32_t i=0;i<nOutputs;i++) 
-        fBuffers.emplace_back(std::make_unique<ddasBuffer>(buildWindow));
+        fBuffers.emplace_back(std::make_unique<ddasBuffer>(buildWindow,
+                                                            maxBufferedEvents));
     }
 
     ddasBuffer& Buffer(std::size_t i=0) {
@@ -43,10 +47,14 @@ class ddasLoop : public GThread {
   
     ddasStats GetStats() const {
       ddasStats s;
-      s.blocksIn   = fBlocksIn;
-      s.hitsBuilt  = fHitsBuilt;
-      s.eventsBuilt = fEventsBuilt;
-      return s;
+    s.blocksIn   = fBlocksIn;
+    s.hitsBuilt  = fHitsBuilt;
+    s.eventsBuilt = fEventsBuilt;
+    for(const auto& buffer : fBuffers) {
+      s.bufferedEvents += buffer->Size();
+      s.maxBufferedEvents += buffer->Capacity();
+    }
+    return s;
     }
 
 
@@ -54,7 +62,7 @@ class ddasLoop : public GThread {
     void Iteration() override {
       std::unique_ptr<dataBlock> block;
 
-      if(fInput.TryPop(block)) {
+      if(fInput.Buffer().WaitPop(block)) {
         fBlocksIn++;
         ddasHit hit;
         hit.set(*block);
@@ -69,11 +77,8 @@ class ddasLoop : public GThread {
         return;
       }
 
-      if(fInput.Finished() && fInput.Empty()) {
-        Flush();
-        RequestStop();
-        return;
-      }
+      Flush();
+      RequestStop();
     }
 
     void Flush() override {
@@ -95,6 +100,4 @@ class ddasLoop : public GThread {
 };
 
 #endif
-
-
 

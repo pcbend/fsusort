@@ -18,7 +18,9 @@
 //#include <GPhysicsThread.h>
 //#include <GTTreeThread.h>
 
-//#include <GHistogramer.h>
+#include <GHistogramer.h>
+
+#include <GPipeline.h>
 
 #include <globals.h>
 #include <utils.h>
@@ -29,6 +31,7 @@
 
 std::vector<std::string> GintOptions::fGEBFiles;
 std::vector<std::string> GintOptions::fEVTFiles;
+bool                     GintOptions::fQuitAfterSort;
 
 Gint *Gint::fGint = 0;
 Gint * gInt = 0;
@@ -101,7 +104,7 @@ void Gint::LoadOptions(int argc, char **argv) {
   argParser parser;
 
   std::vector<std::string> input_files;
-  bool doHelp,doGui,doVersion;
+  bool doHelp,doGui,doVersion,quitAfterSort;
 
   parser.default_option(&input_files)
     .description("Input file(s)");
@@ -114,7 +117,11 @@ void Gint::LoadOptions(int argc, char **argv) {
   parser.option("v version",&doVersion)
     .description("Show version")
     .default_value(false);
- 
+  parser.option("q quit",&quitAfterSort)
+    .description("quit after sorting")
+    .default_value(false);
+
+
   // Do the parsing...
   try{
     parser.parse(argc, argv);
@@ -138,7 +145,10 @@ void Gint::LoadOptions(int argc, char **argv) {
     //fShouldExit = true;
   }
 
+  if(quitAfterSort) 
+    GintOptions::SetQuitAfterSort(true);
   
+
   for(auto& file : input_files){
     switch(DetermineFileType(file)){
       case EFileType::kCALIBRATION:
@@ -173,7 +183,42 @@ void Gint::LoadOptions(int argc, char **argv) {
 void Gint::ApplyOptions()  {
   if(GintOptions::GetGEBFiles().size()>0)
     Sort(GintOptions::GetGEBFiles().at(0));
+ 
 
+
+
+
+  if(GintOptions::GetEVTFiles().size() > 0) {
+
+    const auto& evtFiles = GintOptions::GetEVTFiles();
+
+    std::filesystem::path firstInput(evtFiles.front());
+    std::string runDirectory = firstInput.parent_path().filename().string(); // "run144"
+
+    std::string runNumber = runDirectory;
+    if(runNumber.rfind("run", 0) == 0) {
+      runNumber.erase(0, 3);
+    }
+    std::string histName = "hists" + runNumber + ".root";
+    
+    GHistogramer::Get().SetOutFile(histName);
+
+    GPipeline pipe;
+
+    pipe.SetDetmap(programPath() + "/../cals/detmap.tsv");
+    pipe.SetOrderingWindow(500000);
+    pipe.SetBuildWindow(200);
+    pipe.SetNPhysicsThreads(1);
+
+    pipe.AddFiles(evtFiles);
+    pipe.Run();
+    GHistogramer::Get().Close();
+  }
+
+
+  printf("\n\n");
+  if(GintOptions::QuitAfterSort())
+    Terminate(0);  
 
 }
 

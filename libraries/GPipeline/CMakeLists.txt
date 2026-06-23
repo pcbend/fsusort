@@ -23,4 +23,3 @@ target_link_libraries(GPIPELINE
     GHISTOGRAMER
     ROOT::Core
 )
-

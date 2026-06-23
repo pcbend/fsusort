@@ -11,6 +11,10 @@ class Trinity : public GDetector {
     int BuildHits() override;
   private:
 
+    std::vector<ddasHit> fCores;
+    std::vector<ddasHit> fBGOs;
+
+
   ClassDefOverride(Trinity,1)
 };
 

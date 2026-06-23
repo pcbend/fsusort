@@ -2,10 +2,13 @@
 #define __GHISTOGRAMER_H__
 
 
-#include<string>
-#include<map>
-#include<mutex>
-#include<cmath>
+#include <atomic>
+#include <cmath>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include <TFile.h>
 #include <TDirectory.h>
@@ -18,6 +21,17 @@ class GHistogramer {
     static GHistogramer& Get();
     
   private:
+    struct HistogramDefinition {
+      int xbins;
+      double xlow;
+      double xhigh;
+      int ybins;
+      double ylow;
+      double yhigh;
+    };
+
+    struct ThreadHistogramStore;
+
     GHistogramer();
     GHistogramer(const GHistogramer&)            = delete;
     GHistogramer& operator=(const GHistogramer&) = delete;
@@ -47,10 +61,20 @@ class GHistogramer {
 
 
   private:
+    std::shared_ptr<ThreadHistogramStore> GetThreadHistogramStore();
+    TH1* CreateHistogram(const std::string& pathName,
+                         const HistogramDefinition& definition);
+    void ResetHistogramsLocked();
+    void MergeHistogramsLocked();
+
     std::mutex fMutex; 
     std::unordered_map<std::string,TH1*> fH1; 
     std::unordered_map<std::string, TDirectory*> fDirCache;
+    std::unordered_map<std::string, HistogramDefinition> fDefinitions;
+    std::vector<std::shared_ptr<ThreadHistogramStore>> fThreadStores;
     TDirectory* fBaseDir  = nullptr;
+    std::atomic<uint64_t> fGeneration{0};
+    bool fClosed{false};
 
   ClassDef(GHistogramer,0)  
 };

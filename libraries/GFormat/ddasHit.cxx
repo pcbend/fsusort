@@ -87,10 +87,14 @@ bool ddasHit::Calibrate(const GChannel *channel) const  {
   double temp = charge + rng.Uniform();  
   
   int counter=0; 
-  for(const auto par : channel->fCalPars) {
-    ecal += par*std::pow(temp,counter);
-    counter++;
-  }
+  //for(const auto par : channel->fCalPars) {
+  //  ecal += par*std::pow(temp,counter);
+  //  counter++;
+  //}
+  if(channel->fCalPars.size()==2) 
+    ecal = channel->fCalPars[0] + temp*channel->fCalPars[1];
+
+
   return true;
 }
 
