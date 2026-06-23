@@ -55,6 +55,12 @@ int main(int argc, char** argv) {
     //for(int i=0;i<8;i++) { 
     //  printf("\t[%i]:\t%i\n",i,viewer.GetCurrentHit().GetQDC()[i]); 
     //}
+
+      printf("\tGetTimestamp() = %.04f\n",viewer.GetCurrentHit().GetTimestamp());
+      printf("\tGetCFDTimes()  = %.04f\n",viewer.GetCurrentHit().GetCFDTime());
+      printf("\tGetTime()      = %.04f\n",viewer.GetCurrentHit().GetTime());
+
+
       if(viewer.GetCurrentHit().GetForcedCFD()) printf(RED);
       printf("forced CFD: %i\n",viewer.GetCurrentHit().GetForcedCFD());
       if(viewer.GetCurrentHit().GetForcedCFD()) printf(RESET_COLOR);

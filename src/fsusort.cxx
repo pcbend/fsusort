@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
 
   //loadStyle();
   loadEnv();
-  gROOT->ProcessLine(".L include/Gtypes.h"); // for some reason the enums aren't being processed properly by the rootclang
+  //gROOT->ProcessLine(".L include/Gtypes.h"); // for some reason the enums aren't being processed properly by the rootclang
 
   //signal(SIGINT,SigHandler);
   signal(SIGTERM,SigHandler);

@@ -131,7 +131,8 @@ int main(int argc, char** argv) {
 //ddasHit (useful data members)
 //
 //  uint32_t GetAddress()  const { return address; }
-//  double   GetEnergy()   const { return energy; }
+//  double   GetCharge()   const { return charge; }  // raw energy filter output
+//  double   GetEcal()     const { return ecal;   }  // calibrated energy filter output.
 //  double   GetTime()     const { return time  +cfd; } 
 //  double   GetCFDTime()  const { return cfd; } //conversion already handled
 //  int      GetId()       const { return id;  } // cuurently set as crate*13*16 + (slot-2)*16 +ch 
@@ -141,14 +142,14 @@ int main(int argc, char** argv) {
 //  bool hasQDC{false};
 
 // QDC INFO (Trinity)
-// 0 - baseline far   31   
-// 1 - baseline near  29   (60)
-// 2 - pre-peak       15
-// 3 - peak           20
-// 4 - mid            10   (45)
-// 5 - tail           55   (100)
-// 6 - post-tail      15 
-// 7 - post-post tail (basline) 25 
+// 0 - baseline far   31                  15 
+// 1 - baseline near  29   (60)           30
+// 2 - pre-peak       15                  15
+// 3 - peak           20                  20
+// 4 - mid            10   (45)           10
+// 5 - tail           55   (100)          55 
+// 6 - post-tail      15                  15
+// 7 - post-post tail (basline) 25        40
 
 
 // QDC INFO (Fast Timing) (timestamp units)
@@ -179,10 +180,12 @@ void MakeHistograms(const std::vector<ddasHit> &event) {
     }
 
 
-    GHistogramer::Get().Fill("summary",16000,0,16000,hit.GetEnergy(),
+    GHistogramer::Get().Fill("ecal",8000,0,4000,hit.GetEcal(),
+                                       300,0,300,hit.GetId());
+    GHistogramer::Get().Fill("raw",16000,0,16000,hit.GetCharge(),
                                        300,0,300,hit.GetId());
     
-    GHistogramer::Get().Fill(Form("singles/det%03i",hit.GetId()),16000,0,16000,hit.GetEnergy());
+    GHistogramer::Get().Fill(Form("singles/det%03i",hit.GetId()),16000,0,16000,hit.GetCharge());
     
     
     if(hit.GetId()>=194) {
@@ -193,13 +196,34 @@ void MakeHistograms(const std::vector<ddasHit> &event) {
       }
     }
 
+    if(hit.GetId()>=192 && hit.GetId()<=207) {  //fast timing
+      if(hit.hasQDC && !hit.GetForcedCFD()) { 
+        double add = hit.GetQDC()[2] + hit.GetQDC()[3]; 
+        double sub = hit.GetQDC()[1];             
+        GHistogramer::Get().Fill("QDCsummary",16000,0,0,add-sub*(140./100.) ,   // zero-zero are auto limits
+                                              300,0,300,hit.GetId());
+      }
+    }
+    
+    if(hit.GetId()>=64 && hit.GetId()<=191) { //trinity 
+      if(hit.hasQDC && !hit.GetForcedCFD()) { 
+        double base  = hit.GetQDC()[0]+hit.GetQDC()[1];
+        double peak  = hit.GetQDC()[3] - (base)*(20./45.);
+        double tail  = hit.GetQDC()[5] - (base)*(55./45.);
+        double total = (hit.GetQDC()[3]+hit.GetQDC()[4]+hit.GetQDC()[5]) - base*(85./45);
 
-    if(hit.hasQDC && !hit.GetForcedCFD()) { 
-      double add = hit.GetQDC()[2] + hit.GetQDC()[3]; 
-      double sub = hit.GetQDC()[1];             
-      GHistogramer::Get().Fill("QDCsummary",16000,0,0,add-sub*(140./100.) ,   // zero-zero are auto limits
-      //GHistogramer::Get().Fill("QDCsummary",16000,0,0,add  -sub,   // zero-zero are auto limits
-                                          300,0,300,hit.GetId());
+        GHistogramer::Get().Fill("QDCsummary",16000,0,0,total,   // zero-zero are auto limits
+                                              300,0,300,hit.GetId());
+        
+        
+        GHistogramer::Get().Fill("QDCRatio",16000,0,0,tail/peak,   // zero-zero are auto limits
+                                            300,0,300,hit.GetId());
+     
+       
+        GHistogramer::Get().Fill(Form("trinity/det%03i",hit.GetId()),1000,0,1,tail/peak,
+                                                                     2000,0,64000,total);
+
+      }
     }
   }
 

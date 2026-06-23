@@ -27,9 +27,13 @@ class GintOptions {
     static void AddGEBFile(std::string fname)     { fGEBFiles.push_back(fname); }
     static std::vector<std::string> GetGEBFiles() { return fGEBFiles; }
 
+    static void AddEVTFile(std::string fname)     { fEVTFiles.push_back(fname); }
+    static std::vector<std::string> GetEVTFiles() { return fEVTFiles; }
 
   private:
     static std::vector<std::string> fGEBFiles;
+    static std::vector<std::string> fEVTFiles;
+
 };
 
 class GSigHandler : public TSignalHandler {

@@ -8,6 +8,8 @@
 #include<GChannel.h>
 #include<globals.h>
 
+#include <TRandom.h>
+
 ddasHit::ddasHit() { Clear(); }
 
 ddasHit::~ddasHit() { } 
@@ -16,7 +18,8 @@ ddasHit::~ddasHit() { }
 void ddasHit::Clear() {
   evId   = ULLONG_MAX;
   id     = INT_MAX;
-  energy = sqrt(-1);
+  charge = 0.0;//sqrt(-1);
+  ecal   = 0.0;
   //time   = ULLONG_MAX;
   time   = std::numeric_limits<double>::quiet_NaN();
   cfd    = INT_MAX;
@@ -32,7 +35,8 @@ void ddasHit::print() const {
   printf("ddas hit @ %f\n", GetTime()+GetCFDTime()/16384.);
   printf("\tevId:    %llu\n",evId);
   printf("\tid:      %i\n",id);
-  printf("\tenergy:  %.1f\n",energy);
+  printf("\tcharge:  %.1f\n",charge);
+  printf("\tecal:    %.1f\n",ecal);
   printf("\thasQDC: %i\n", hasQDC);
   if(hasQDC) {
     printf("\t\t");
@@ -61,7 +65,8 @@ void ddasHit::Copy(ddasHit& lhs) const {
 
   lhs.setEvId(evId);
   lhs.setId(id);
-  lhs.setEnergy(energy);
+  lhs.setCharge(charge);
+  lhs.setEcal(ecal);
   lhs.setTime(time);
   lhs.setCFD(cfd);
   lhs.setQDC(qdc);
@@ -72,6 +77,24 @@ void ddasHit::Copy(ddasHit& lhs) const {
 
 }
 
+bool ddasHit::Calibrate(const GChannel *channel) const  { 
+  if(!channel)
+    channel = GChannel::Get(GetAddress());
+  if(!channel)
+    return false;
+  
+  double temp = charge + gRandom->Uniform();  
+  int counter=0; 
+  for(const auto par : channel->fCalPars) {
+    ecal += par*std::pow(temp,counter);
+    counter++;
+  }
+  return true;
+}
+
+
+
+
 void ddasHit::set(const dataBlock& data) { 
 
   //GChannel::Get(data.address())->Print();
@@ -81,13 +104,14 @@ void ddasHit::set(const dataBlock& data) {
   id   = data.crate*MAX_BOARDS_PER_CRATE*MAX_CHANNELS_PER_BOARD + 
         (data.slot-BOARD_START)*MAX_CHANNELS_PER_BOARD         + 
          data.ch;
-  energy  = data.energy;
+  charge  = data.energy;
   address = data.address();
 
   time = static_cast<double>(data.time);
   cfd  = 0.0;
  
   auto *chan = GChannel::Get(data.address());
+  Calibrate(chan);
 
 
   switch(chan->fMHz) {

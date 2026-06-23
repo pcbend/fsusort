@@ -25,6 +25,7 @@
 
 
 std::vector<std::string> GintOptions::fGEBFiles;
+std::vector<std::string> GintOptions::fEVTFiles;
 
 Gint *Gint::fGint = 0;
 Gint * gInt = 0;
@@ -152,6 +153,9 @@ void Gint::LoadOptions(int argc, char **argv) {
         break;
       case EFileType::kGEB:
         GintOptions::AddGEBFile(file);
+        break;
+      case EFileType::kEVT:
+        GintOptions::AddEVTFile(file);
         break;
       default:
         printf("\tDiscarding unknown file: %s\n",file.c_str());

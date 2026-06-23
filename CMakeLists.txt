@@ -148,6 +148,7 @@ function(add_fsu_executable target source)
     PRIVATE
       GCORE
       GFORMAT
+      GPIPELINE 
       GPHYSICS
       #GTYPES
       GHISTOGRAMER

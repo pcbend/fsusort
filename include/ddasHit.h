@@ -9,6 +9,7 @@
 #include<TObject.h>
 
 class dataBlock;
+class GChannel;
 
 class ddasHit { //: public TObject {
   public:
@@ -19,7 +20,8 @@ class ddasHit { //: public TObject {
 
    void setEvId(const unsigned long long EVID) { evId   = EVID; }  // evID
    void setId(const int ID)                    { id    = ID; }
-   void setEnergy(const double E)              { energy = E; }
+   void setCharge(const double E)              { charge = E; }
+   void setEcal(const double E)                { ecal = E; }
    void setTime(const double T)                { time   = T; }
    void setCFD(const double CFD)                  { cfd = CFD; }
    //void setQDC(const std::vector<int> &QDC)     { qdc = QDC; }
@@ -43,11 +45,15 @@ class ddasHit { //: public TObject {
    bool    operator==(ddasHit const& rhs);
    bool    operator<(ddasHit const& rhs) const;
 
+   bool Calibrate(const GChannel *c=0) const;
+
   public:
     uint32_t GetAddress()  const { return address; }
-    double GetEnergy()  const { return energy; }
+    double GetCharge()  const { return charge; }
+    double GetEcal()    const { return ecal; }
     //double GetTime()    const { return time; }//+ cfd/16384.; }
     double GetTime()    const { return time  +cfd; }//+ cfd/16384.; }
+    double GetTimestamp()    const { return time; }//+ cfd/16384.; }
     double GetCFDTime() const { return cfd; }
     int    GetId()      const { return id;  }
     bool   GetForcedCFD() const { return forcedCFD; }
@@ -64,7 +70,8 @@ class ddasHit { //: public TObject {
     uint32_t address;
     unsigned long long evId;
     int id;
-    double energy;
+    double charge;
+    mutable double ecal;
     double time;
     double cfd;
     bool   forcedCFD;

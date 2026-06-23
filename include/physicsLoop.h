@@ -79,7 +79,7 @@ protected:
   void FillHistograms(const physicsEvent& event) {
     //later 
     for(const auto &hit : event.clarion.fRawHits) {
-      GHistogramer::Get().Fill("clarion/summary",4000,0,4000,hit.GetEnergy(),
+      GHistogramer::Get().Fill("clarion/summary",4000,0,4000,hit.GetCharge(),
                                             70,0,70,hit.GetId());
     }                             
 
