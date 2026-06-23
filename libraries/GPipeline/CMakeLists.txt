@@ -16,9 +16,11 @@ target_include_directories(GPIPELINE
 #  LINKDEF Linkdef.h
 #)
 
-target_link_libraries(GPIPELINE 
+target_link_libraries(GPIPELINE
   PUBLIC
+    GFORMAT
+    GPHYSICS
+    GHISTOGRAMER
     ROOT::Core
 )
-
 
