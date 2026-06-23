@@ -2,6 +2,27 @@
 #include <GHistogramer.h>
 #include <utils.h>
 #include <TROOT.h>
+#include <TList.h>
+
+namespace {
+
+void SortDirectoryTree(TDirectory* directory) {
+  if(!directory)
+    return;
+
+  TList* objects = directory->GetList();
+  if(!objects)
+    return;
+
+  objects->Sort();
+  TIter next(objects);
+  while(TObject* object = next()) {
+    if(object->InheritsFrom(TDirectory::Class()))
+      SortDirectoryTree(static_cast<TDirectory*>(object));
+  }
+}
+
+} // namespace
 
 struct GHistogramer::ThreadHistogramStore {
   explicit ThreadHistogramStore(uint64_t generation)
@@ -32,7 +53,7 @@ void GHistogramer::Close() {
 
   if(fBaseDir && fBaseDir->InheritsFrom(TFile::Class())) {
     TFile *file = static_cast<TFile*>(fBaseDir);
-    file->GetList()->Sort();
+    SortDirectoryTree(file);
     file->Write();
     file->Close();
   }
@@ -203,6 +224,5 @@ void GHistogramer::Print(Option_t *opt) const {
   }
 
 }
-
 
 
