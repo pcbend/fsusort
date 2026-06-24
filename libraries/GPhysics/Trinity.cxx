@@ -22,4 +22,10 @@ void Trinity::Clear() {
   GDetector::Clear();
 }
 
-int Trinity::BuildHits() { return 0; } 
+int Trinity::BuildHits() { 
+  for(const auto& hit  : fRawHits) { 
+    //
+
+  }
+  return 0; 
+} 

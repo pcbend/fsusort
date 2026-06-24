@@ -25,7 +25,7 @@ bool LaBrHit::Build(const ddasHit &fragment) {
   } else {
    eqdc = 0;
   }
-  ecal      = fragment.GetCharge();
+  ecal      = fragment.GetEcal_labr();
   timestamp = fragment.GetTimestamp();
   cfd       = fragment.GetCFD();
   time      = fragment.GetTime();

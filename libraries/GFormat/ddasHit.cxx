@@ -20,6 +20,7 @@ void ddasHit::Clear() {
   id     = INT_MAX;
   charge = 0.0;//sqrt(-1);
   ecal   = 0.0;
+  ecal_labr = 0.0;
   //time   = ULLONG_MAX;
   time   = std::numeric_limits<double>::quiet_NaN();
   cfd    = INT_MAX;
@@ -37,6 +38,7 @@ void ddasHit::print() const {
   printf("\tid:      %i\n",id);
   printf("\tcharge:  %.1f\n",charge);
   printf("\tecal:    %.1f\n",ecal);
+  printf("\tecal_labr: %.1f\n",ecal_labr);
   printf("\thasQDC: %i\n", hasQDC);
   if(hasQDC) {
     printf("\t\t");
@@ -67,6 +69,7 @@ void ddasHit::Copy(ddasHit& lhs) const {
   lhs.setId(id);
   lhs.setCharge(charge);
   lhs.setEcal(ecal);
+  lhs.setEcal_labr(ecal_labr);
   lhs.setTime(time);
   lhs.setCFD(cfd);
   lhs.setQDC(qdc);
@@ -86,7 +89,7 @@ bool ddasHit::Calibrate(const GChannel *channel) const  {
   static TRandom3 rng(0);
   double temp = charge + rng.Uniform();  
   
-  int counter=0; 
+  //int counter=0; 
   //for(const auto par : channel->fCalPars) {
   //  ecal += par*std::pow(temp,counter);
   //  counter++;
@@ -98,7 +101,25 @@ bool ddasHit::Calibrate(const GChannel *channel) const  {
   return true;
 }
 
+bool ddasHit::Calibrate_LaBr(const GChannel *channel) const {
+  if(!channel)
+    channel = GChannel::Get(GetAddress());
+  if(!channel)
+    return false;
 
+  //if(hasQDC && !forcedCFD) {
+    double add = qdc[2] + qdc[3];
+    double sub = qdc[1];
+    double eqdc = add-sub*(140./100.);
+    //if(channel->fCalPars.size()==2)
+      ecal_labr = channel->fCalPars[0] + eqdc*channel->fCalPars[1];
+  //} else {
+    //ecal_labr = 0;
+  //}
+
+
+  return true;
+}
 
 
 void ddasHit::set(const dataBlock& data) { 
@@ -164,7 +185,7 @@ if(hasQDC) {
     qdc[i] = data.QDCsum[i];
 }
 
-
+Calibrate_LaBr(chan);
 
 
   traceLength = data.trace_length;

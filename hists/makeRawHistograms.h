@@ -17,11 +17,11 @@
                                        300,0,300,hit.GetId());
     
     
-    if(hit.GetId()>=194) {
+    if(hit.GetId()>=192) {
       if(hit.GetForcedCFD()) { 
-    	GHistogramer::Get().Fill(Form("Forced_%i",hit.GetId()),10,0,10,2);
+    	GHistogramer::Get().Fill(Form("Forced_%i",hit.GetId()),10,0,10,2,8000,0,4000,hit.GetEcal_labr());
       } else {
-    	GHistogramer::Get().Fill(Form("Forced_%i",hit.GetId()),10,0,10,4);
+    	GHistogramer::Get().Fill(Form("Forced_%i",hit.GetId()),10,0,10,4,8000,0,4000,hit.GetEcal_labr());
       }
     }
 

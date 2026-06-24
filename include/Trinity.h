@@ -14,6 +14,16 @@ class TrinityHit {
     void Clear();
 
   //private:
+    uint32_t address;
+    int16_t  id;
+    double peak;
+    double tail;
+    double total;
+    double time;
+    double timestamp;
+    double cfd;
+    double ecal;
+
 
 
   ClassDef(TrinityHit,1);

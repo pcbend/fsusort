@@ -33,16 +33,18 @@
   bool found1 =false;
   bool found2 =false;
   for(const auto& hit : event.labr.hits) {
-    GHistogramer::Get().Fill("labr/summary",8000, 0, 0, hit.eqdc,
+    GHistogramer::Get().Fill("labr/summary_eqdc",8000, 0, 80000, hit.eqdc,
+                                            30, 180, 210, hit.id);
+    GHistogramer::Get().Fill("labr/summary_ecal",4000, 0, 8000, hit.ecal,
                                             30, 180, 210, hit.id);
     if(hit.id == 192) {
       t1 = hit.time;
-      e1 = hit.eqdc;      
+      e1 = hit.ecal;      
       found1 = true;
     }
     if(hit.id == 193) {
       t2 = hit.time;
-      e2 = hit.eqdc;      
+      e2 = hit.ecal;      
       found2 = true;
     }
  
@@ -50,8 +52,12 @@
   if(found1 && found2) { 
     for(const auto& hit : event.labr.hits) {
       if(hit.id==192) continue;
-      GHistogramer::Get().Fill("labr/dt",5000,-10,10,t1-t2,
-                                         4000,0,80000,e1);
+      GHistogramer::Get().Fill("labr/dt_192_193",5000,-10,10,t1-t2,
+                                         4000,0,8000,e1);
+      if(1300 < e2 < 1360){
+        GHistogramer::Get().Fill("labr/dt_192_193_1332",5000,-10,10,t1-t2,
+                                                4000,0,8000,e1);
+      }
     }
   }
 }
