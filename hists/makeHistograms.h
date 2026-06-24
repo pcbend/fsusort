@@ -29,11 +29,30 @@
     }
   }
 
-
+  double t1,e1,t2,e2;
+  bool found1 =false;
+  bool found2 =false;
   for(const auto& hit : event.labr.hits) {
     GHistogramer::Get().Fill("labr/summary",8000, 0, 0, hit.eqdc,
                                             30, 180, 210, hit.id);
+    if(hit.id == 192) {
+      t1 = hit.time;
+      e1 = hit.eqdc;      
+      found1 = true;
+    }
+    if(hit.id == 193) {
+      t2 = hit.time;
+      e2 = hit.eqdc;      
+      found2 = true;
+    }
+ 
   }
-
+  if(found1 && found2) { 
+    for(const auto& hit : event.labr.hits) {
+      if(hit.id==192) continue;
+      GHistogramer::Get().Fill("labr/dt",5000,-10,10,t1-t2,
+                                         4000,0,80000,e1);
+    }
+  }
 }
 
