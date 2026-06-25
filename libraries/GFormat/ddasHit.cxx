@@ -164,7 +164,7 @@ void ddasHit::set(const dataBlock& data) {
         //         static_cast<double>(frac) / 8192.0) / 5.0;
         //}
         if(source >=0 && source <=4) {
-          cfd = ((static_cast<double>(source) -1) +
+          cfd = (static_cast<double>(source) +
                  static_cast<double>(frac) / 8192.0);
         }
         //time = (time*5 + static_cast<double>(source)-1 static_cast<double>(frac)/8192.)*2
