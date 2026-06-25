@@ -141,7 +141,10 @@ void ddasHit::set(const dataBlock& data) {
   Calibrate(chan);
 
   setForceCFD(data.cfd_forced);
-  
+
+  //printf(RED " crate slot channel  = %i %i %i" RESET_COLOR "\n",data.crate,data.slot,data.ch); fflush(stdout);
+  //printf(RED " chan = %p " RESET_COLOR "\n",chan); fflush(stdout);
+
   switch(chan->fMHz) {
     case 100:
       if(data.cfd_forced==0) {

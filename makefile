@@ -10,7 +10,7 @@ TEST := "test"
 $(TARGET):  CMakeLists.txt
 	#@echo "making... ${JOBS} $(MAKEFLAGS) ${TEST} "
 	@if [ ! -d "./build" ]; then mkdir build; fi
-	@cmake -DCMAKE_BUILD_TYPE=Release -S ./ -B ./build || cmake3 -DCMAKE_BUILD_TYPE=Release -S ./ -B ./build
+	@cmake -DCMAKE_BUILD_TYPE=Debug -S ./ -B ./build || cmake3 -DCMAKE_BUILD_TYPE=Debug -S ./ -B ./build
 	@make -j4 -C ./build
 	@if [ ! -d "./bin" ]; then mkdir bin; fi
 	@cp -p ./build/bin/*  ./bin
