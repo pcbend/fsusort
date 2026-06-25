@@ -30,6 +30,9 @@
   }
 
   for(const auto& hit : event.labr.hits) {
+     GHistogramer::Get().Fill("labr/summary_ecal",4000,0,8000,hit.ecal,
+                                                  190,209,20,hit.id);
+
     for(const auto& hit2 : event.labr.hits) {
       if(hit.id==hit2.id) continue;
       double e1,e2,t1,t2;
