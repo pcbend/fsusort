@@ -135,13 +135,21 @@ void ddasHit::set(const dataBlock& data) {
       break;
     case 500:
      {
-        const int source = (data.cfd >> 13) & 0x7;
+        const int source = ((data.cfd >> 13) & 0x7)-1;
         const int frac   = data.cfd & 0x1fff;
 
+        //if(source >=0 && source <=4) {
+        //  cfd = (static_cast<double>(source) +
+        //         static_cast<double>(frac) / 8192.0) / 5.0;
+        //}
         if(source >=0 && source <=4) {
-          cfd = (static_cast<double>(source) +
-                 static_cast<double>(frac) / 8192.0) / 5.0;
+          cfd = ((static_cast<double>(source) -1) +
+                 static_cast<double>(frac) / 8192.0);
         }
+
+        time = (time*5 + static_cast<double>(source)-1 static_cast<double>(frac)/8192.)*2
+        //2 NS BINS?  compress correctly.
+
       }
       break;
     default:
