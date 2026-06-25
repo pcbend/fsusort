@@ -6,6 +6,7 @@
 #include <cstdint>
 
 class ddasHit;
+class GChannel;
 
 class LaBrHit {
   public:

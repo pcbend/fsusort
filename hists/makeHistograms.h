@@ -29,11 +29,23 @@
     }
   }
 
-
   for(const auto& hit : event.labr.hits) {
-    GHistogramer::Get().Fill("labr/summary",8000, 0, 0, hit.eqdc,
-                                            30, 180, 210, hit.id);
+     GHistogramer::Get().Fill("labr/summary_ecal",4000,0,8000,hit.ecal,
+                                                  20,190,209,hit.id);
+
+    for(const auto& hit2 : event.labr.hits) {
+      if(hit.id==hit2.id) continue;
+      double e1,e2,t1,t2;
+      e1 = hit.ecal;
+      t1 = hit.time;
+      e2 = hit2.ecal;
+      t2 = hit2.time;
+
+      GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit.id,hit2.id),5000,-10,10,t1-t2,2000,0,8000,e1);
+      GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit2.id,hit.id),5000,-10,10,t2-t1,2000,0,8000,e2);
+      GHistogramer::Get().Fill("labr/dt_sym_summary",5000,-10,10,t1-t2,2000,0,8000,e1);
+      GHistogramer::Get().Fill("labr/dt_sym_summary",5000,-10,10,t2-t1,2000,0,8000,e2);
+
+    }
   }
-
 }
-

@@ -3,16 +3,44 @@
 
 #include<GDetector.h>
 
+class ddasHit;
+
+class TrinityHit {
+  public:
+    TrinityHit();
+    ~TrinityHit();
+
+    bool Build(const ddasHit &hit);
+    void Clear();
+
+  //private:
+    uint32_t address;
+    int16_t  id;
+    double peak;
+    double tail;
+    double total;
+    double time;
+    double timestamp;
+    double cfd;
+    double ecal;
+
+
+
+  ClassDef(TrinityHit,1);
+};
+
+
+
 class Trinity : public GDetector {
   public:
     Trinity();
     virtual ~Trinity();
 
     int BuildHits() override;
-  private:
+    void Clear();
+  //private:
 
-    std::vector<ddasHit> fCores;
-    std::vector<ddasHit> fBGOs;
+    std::vector<TrinityHit> hits;
 
 
   ClassDefOverride(Trinity,1)

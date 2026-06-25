@@ -22,6 +22,7 @@ class ddasHit { //: public TObject {
    void setId(const int ID)                    { id    = ID; }
    void setCharge(const double E)              { charge = E; }
    void setEcal(const double E)                { ecal = E; }
+   void setEcal_labr(const double E)           { ecal_labr = E; }
    void setTime(const double T)                { time   = T; }
    void setCFD(const double CFD)                  { cfd = CFD; }
    //void setQDC(const std::vector<int> &QDC)     { qdc = QDC; }
@@ -46,11 +47,13 @@ class ddasHit { //: public TObject {
    bool    operator<(ddasHit const& rhs) const;
 
    bool Calibrate(const GChannel *c=0) const;
+   bool Calibrate_LaBr(const GChannel *c=0) const;
 
   public:
     uint32_t GetAddress()  const { return address; }
     double GetCharge()     const { return charge; }
     double GetEcal()       const { return ecal; }
+    double GetEcal_labr()  const { return ecal_labr; }
     //double GetTime()    const { return time; }//+ cfd/16384.; }
     double GetTime()       const { return time  +cfd; }//+ cfd/16384.; }
     double GetTimestamp()  const { return time; }//+ cfd/16384.; }
@@ -72,6 +75,7 @@ class ddasHit { //: public TObject {
     int id;
     double charge;
     mutable double ecal;
+    mutable double ecal_labr;
     double time;
     double cfd;
     bool   forcedCFD;
