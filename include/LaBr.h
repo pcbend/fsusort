@@ -15,7 +15,9 @@ class LaBrHit {
    
     void Clear();
     bool Build(const ddasHit &hit);
- 
+
+    double GetFastTime() const;
+
   //private:
     uint32_t address;
     uint16_t  id;

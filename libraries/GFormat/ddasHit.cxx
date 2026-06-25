@@ -167,8 +167,7 @@ void ddasHit::set(const dataBlock& data) {
           cfd = ((static_cast<double>(source) -1) +
                  static_cast<double>(frac) / 8192.0);
         }
-
-        time = (time*5 + static_cast<double>(source)-1 static_cast<double>(frac)/8192.)*2
+        //time = (time*5 + static_cast<double>(source)-1 static_cast<double>(frac)/8192.)*2
         //2 NS BINS?  compress correctly.
 
       }

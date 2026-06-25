@@ -32,6 +32,15 @@ bool LaBrHit::Build(const ddasHit &fragment) {
   return true;
 }
 
+double LaBrHit::GetFastTime() const {
+  //return 2ns timing.
+  return (timestamp*5 + cfd)*2;
+}
+
+
+
+
+
 
 LaBr::LaBr() { } 
 
@@ -41,6 +50,8 @@ void LaBr::Clear() {
   hits.clear();
   GDetector::Clear();
 }
+
+
 
 int LaBr::BuildHits() { 
   LaBrHit hit;

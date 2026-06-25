@@ -37,9 +37,9 @@
       if(hit.id==hit2.id) continue;
       double e1,e2,t1,t2;
       e1 = hit.ecal;
-      t1 = hit.time;
+      t1 = hit.GetFastTime();
       e2 = hit2.ecal;
-      t2 = hit2.time;
+      t2 = hit2.GetFastTime();
 
       GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit.id,hit2.id),5000,-10,10,t1-t2,2000,0,8000,e1);
       GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit2.id,hit.id),5000,-10,10,t2-t1,2000,0,8000,e2);
