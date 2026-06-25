@@ -13,6 +13,7 @@ void LaBrHit::Clear() {
   timestamp = -1;
   cfd       = -1;
   time      = -1;
+  cfdForced = true;
 }
 
 bool LaBrHit::Build(const ddasHit &fragment) {
@@ -29,11 +30,13 @@ bool LaBrHit::Build(const ddasHit &fragment) {
   timestamp = fragment.GetTimestamp();
   cfd       = fragment.GetCFD();
   time      = fragment.GetTime();
+  cfdForced = fragment.GetForcedCFD();
   return true;
 }
 
 double LaBrHit::GetFastTime() const {
   //return 2ns timing.
+  if(cfdForced) return -1000;
   return (timestamp*5 + cfd)*2;
 }
 

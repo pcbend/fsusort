@@ -140,7 +140,8 @@ void ddasHit::set(const dataBlock& data) {
   auto *chan = GChannel::Get(data.address());
   Calibrate(chan);
 
-
+  setForceCFD(data.cfd_forced);
+  
   switch(chan->fMHz) {
     case 100:
       if(data.cfd_forced==0) {
@@ -163,6 +164,8 @@ void ddasHit::set(const dataBlock& data) {
         //  cfd = (static_cast<double>(source) +
         //         static_cast<double>(frac) / 8192.0) / 5.0;
         //}
+        if(source==7) 
+          setForceCFD(data.cfd_forced);
         if(source >=0 && source <=4) {
           cfd = (static_cast<double>(source) +
                  static_cast<double>(frac) / 8192.0);
@@ -175,7 +178,6 @@ void ddasHit::set(const dataBlock& data) {
     default:
       break;
   }
-  setForceCFD(data.cfd_forced);
 
   //cfd corrected time values should be time-cfd.
 

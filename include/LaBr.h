@@ -26,6 +26,8 @@ class LaBrHit {
     double   timestamp;
     double   cfd;
     double   time;
+    bool     cfdForced{true};
+
 
   ClassDef(LaBrHit,1)
 };
