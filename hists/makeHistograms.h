@@ -34,17 +34,18 @@
                                                   20,190,209,hit.id);
 
     for(const auto& hit2 : event.labr.hits) {
+      if(hit.cfdForced) continue;
       if(hit.id==hit2.id) continue;
       double e1,e2,t1,t2;
-      //e1 = hit.ecal;
-      e1 = hit.eqdc;
+      e1 = hit.ecal;
+      //e1 = hit.eqdc;
       t1 = hit.GetFastTime();
-      //e2 = hit2.ecal;
-      e2 = hit2.eqdc;
+      e2 = hit2.ecal;
+      //e2 = hit2.eqdc;
       t2 = hit2.GetFastTime();
 
-      GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit.id,hit2.id),2000,-100,100,t1-t2,2000,0,80000,e1);
-      GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit2.id,hit.id),2000,-100,100,t2-t1,2000,0,80000,e2);
+      GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit.id,hit2.id),2000,-100,100,t1-t2,2000,0,8000,e1);
+      GHistogramer::Get().Fill(Form("labr/dt_%i_%i",hit2.id,hit.id),2000,-100,100,t2-t1,2000,0,8000,e2);
       GHistogramer::Get().Fill("labr/dt_sym_summary",5000,-10,10,t1-t2,2000,0,8000,e1);
       GHistogramer::Get().Fill("labr/dt_sym_summary",5000,-10,10,t2-t1,2000,0,8000,e2);
 
