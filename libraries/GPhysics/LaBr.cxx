@@ -35,8 +35,10 @@ bool LaBrHit::Build(const ddasHit &fragment) {
 }
 
 double LaBrHit::GetFastTime() const {
-  //return 2ns timing.
-  if(cfdForced) return -1000;
+  //return 2ns timing. -> BL: I think this is actually in ns, see below
+  //cfd forced is evt*10ns (equation 4-8) and not forced is (evt*5 + correction)*2ns (equation 4-7). So if cfd correction is 0 then 4-7 and 4-8 should give same result and have same units. evt is in clock ticks (1/100 MHz), 1 tick is 10 ns so 4-7 and 4-8 multiply by 10 or 2*5 to convert ticks to units of ns.
+  //if(cfdForced) return timestamp*10;
+  if(cfd == -5) return timestamp*10;
   return (timestamp*5 + cfd)*2;
 }
 

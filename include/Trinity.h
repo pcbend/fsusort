@@ -13,6 +13,8 @@ class TrinityHit {
     bool Build(const ddasHit &hit);
     void Clear();
 
+    double GetFastTime() const;
+
   //private:
     uint32_t address;
     int16_t  id;
@@ -23,6 +25,7 @@ class TrinityHit {
     double timestamp;
     double cfd;
     double ecal;
+    bool cfdForced{true};
 
 
 

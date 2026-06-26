@@ -135,7 +135,7 @@ void ddasHit::set(const dataBlock& data) {
   address = data.address();
 
   time = static_cast<double>(data.time);
-  cfd  = 0.0;
+  cfd  = -5.0;
  
   auto *chan = GChannel::Get(data.address());
   Calibrate(chan);
@@ -157,19 +157,32 @@ void ddasHit::set(const dataBlock& data) {
       break;
     case 500:
      {
-        const int source = ((data.cfd >> 13) & 0x7)-1;
+        const int source = ((data.cfd >> 13) & 0x7)-0;
         const int frac   = data.cfd & 0x1fff;
 
         //if(source >=0 && source <=4) {
         //  cfd = (static_cast<double>(source) +
         //         static_cast<double>(frac) / 8192.0) / 5.0;
-        //}
-        if(source==7) 
+        //}        
+        //if(source==7) //source is now CFD trigger source bits - 1
+        if(source==7){
           setForceCFD(data.cfd_forced);
-        if(source >=0 && source <=4) {
+          break;
+        }
+        //source bits - 1 can be -1, 0, 1, 2, 3
+        //if(source >=-1 && source <=3) {
           cfd = (static_cast<double>(source) +
                  static_cast<double>(frac) / 8192.0);
-        }
+        //}
+        //if(source < 0 || source > 4){
+         // printf("source: %d\n", source);
+          //printf("frac: %d\n", frac);
+        //}
+        //if(source==3){
+          //printf("source: %d\n", source);
+          //printf("frac: %d\n", frac);
+          //printf("cfd: %.3f\n", cfd);
+        //}
         //time = (time*5 + static_cast<double>(source)-1 static_cast<double>(frac)/8192.)*2
         //2 NS BINS?  compress correctly.
 
