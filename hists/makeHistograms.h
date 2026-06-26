@@ -18,10 +18,10 @@
       trinity_t = hit.GetFastTime();
       trinity_t2 = hit2.GetFastTime();
       if(hit.total > 4000 && hit2.total > 4000){
-        GHistogramer::Get().Fill("trinity/trinity_dt_summary",10000,-100,100,trinity_t-trinity_t2);
+        GHistogramer::Get().Fill("trinity/trinity_dt_summary",20000,-1000,1000,trinity_t-trinity_t2);
       }
       if(hit.id == 100 && hit2.id == 124 && hit.total > 4000 && hit2.total > 4000){
-        GHistogramer::Get().Fill("trinity/dt_100_124",10000,-100,100,trinity_t-trinity_t2);
+        GHistogramer::Get().Fill("trinity/dt_100_124",20000,-1000,1000,trinity_t-trinity_t2);
       }
     }
 

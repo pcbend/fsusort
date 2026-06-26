@@ -2,6 +2,7 @@
 
   double labr_fasttime =-1;
   double trinity_fasttime =-1;
+  double clarion_fasttime =-1;
 
   for(auto hit : hits) {
     
@@ -70,13 +71,23 @@
     if(trinity_fasttime > 0){
       GHistogramer::Get().Fill("clarion_trinity",4000,0,8000,hit.GetEcal(),
                                                   70,0,70,hit.GetId());
+      clarion_fasttime = (hit.GetTimestamp() + hit.GetCFD())*10;
     }  
   }
 }  
 
   if(labr_fasttime>0 && trinity_fasttime>0) {
-   GHistogramer::Get().Fill("dt",20000,-100,100,labr_fasttime-trinity_fasttime);
+   GHistogramer::Get().Fill("dt_labr_trinity",20000,-10000,10000,labr_fasttime-trinity_fasttime);
   }	  
+
+  if(labr_fasttime>0 && clarion_fasttime>0) {
+   GHistogramer::Get().Fill("dt_labr_clarion",20000,-10000,10000,labr_fasttime-clarion_fasttime);
+  }
+
+  if(clarion_fasttime>0 && trinity_fasttime>0) {
+   GHistogramer::Get().Fill("dt_clarion_trinity",20000,-10000,10000,clarion_fasttime-trinity_fasttime);
+  }
+
 
 }
 
