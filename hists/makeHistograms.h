@@ -25,6 +25,11 @@
       }
     }
 
+  
+    for(const auto& chit : event.clarion.hits) {
+      GHistogramer::Get().Fill("coinc/gt_timing",2000,-200,200, hit.timestamp - chit.timestamp,
+                                                4000, 0, 8000, chit.ecal);
+    }
   }
 
   for(const auto& hit : event.clarion.hits) {
@@ -117,10 +122,10 @@
       //GHistogramer::Get().Fill("labr/dt_sym_summary",10000,-100,100,t2-t1,2000,0,8000,e2);
 
       //current cal is a little off, gating for 1 hr 60Co run 223
-      if(1240 < e1 < 1360){
+      if((1240 < e1) && (e1 < 1360)){
         GHistogramer::Get().Fill(Form("labr/dt_%i_%i_1332",hit2.id,hit.id),10000,-100,100,t2-t1,2000,0,8000,e2);
       }
-      if(1240 < e2 < 1360){
+      if((1240 < e2) && (e2 < 1360)){
         GHistogramer::Get().Fill(Form("labr/dt_%i_%i_1332",hit.id,hit2.id),10000,-100,100,t1-t2,2000,0,8000,e1);
       }
 
