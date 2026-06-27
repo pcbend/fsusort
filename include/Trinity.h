@@ -17,7 +17,7 @@ class TrinityHit {
 
   //private:
     uint32_t address;
-    int16_t  id;     // after matching; i am going to use id
+    uint16_t  id;     // after matching; i am going to use id
     double peak;     //   to store the new "trinity" number  
     double tail;     //   id = (id -80)/2; starts at zero.
     double total;

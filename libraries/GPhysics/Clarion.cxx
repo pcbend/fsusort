@@ -34,6 +34,12 @@ void Clarion::Clear() {
 
 }
 
+double ClarionHit::GetFastTime() const {
+  //Clarion is in 100 MHz module
+  if(cfd == -5) return timestamp*10;
+  return (timestamp + cfd)*10;
+}
+
 int Clarion::BuildHits() { 
   ClarionHit hit;
   bool build = false;

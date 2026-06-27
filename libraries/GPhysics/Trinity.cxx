@@ -65,10 +65,10 @@ int Trinity::BuildHits() {
   for(const auto& fragment : fRawHits) {
     hit.Build(fragment);
     if((hit.id%2)==0) {
-      hit.id = (hit.id-80)/2;
+      hit.id = (hit.id-64)/2;
       hits_A.emplace_back(hit);
     } else {
-      hit.id = (hit.id-80)/2;
+      hit.id = (hit.id-64)/2;
       hits_B.emplace_back(hit);
     }
     hit.Clear();
@@ -78,10 +78,10 @@ int Trinity::BuildHits() {
       if(hitA.id == hitB.id) {
         // check energy
         GHistogramer::Get().Fill("trinity/pair_energy",2000,-20000,20000,hitA.total  - hitB.total,
-                                                    200,0,200,hitA.id);
+                                                    200,0,200,2*hitA.id + 64);
         // check time
-        GHistogramer::Get().Fill("trinity/pair_time",2000,-200,200,hitA.timestamp - hitB.timestamp,
-                                                   200,0,200,hitA.id);
+        GHistogramer::Get().Fill("trinity/pair_time",20000,-10000,10000,hitA.GetFastTime() - hitB.GetFastTime(),
+                                                   200,0,200,2*hitA.id + 64);
         // pick which to take - right now, just taking A.
         hits.emplace_back(hitA);
         break;  
