@@ -9,6 +9,13 @@
       charged_particle += 1;
     }
 
+    for(const auto& hit2 : event.trinity.hits) {
+      if(hit.address == hit2.address) continue; 
+
+      GHistogramer::Get().Fill("trinity/hitmap",300,0,300,hit.id,
+                                                300,0,300,hit2.id);
+    }
+
     GHistogramer::Get().Fill("trinity/summary",2000,0,64000, hit.total,
                                                150,50,200, hit.id);
  
