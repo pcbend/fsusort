@@ -3,6 +3,8 @@
 
 #include<ddasHit.h>
 
+#include<GHistogramer.h>
+
 TrinityHit::TrinityHit() { } 
 
 TrinityHit::~TrinityHit() { } 
@@ -62,8 +64,32 @@ int Trinity::BuildHits() {
   //bool build = false;
   for(const auto& fragment : fRawHits) {
     hit.Build(fragment);
-    hits.emplace_back(hit);
+    if((hit.id%2)==0) {
+      hit.id = (hit.id-80)/2;
+      hits_A.emplace_back(hit);
+    } else {
+      hit.id = (hit.id-80)/2;
+      hits_B.emplace_back(hit);
+    }
     hit.Clear();
   }
+  for(const auto& hitA : hits_A) {
+    for(const auto& hitB : hits_B) {
+      if(hitA.id == hitB.id) {
+        // check energy
+        GHistogramer::Get().Fill("trinity/pair_energy",2000,-20000,20000,hitA.total  - hitB.total,
+                                                    200,0,200,hitA.id);
+        // check time
+        GHistogramer::Get().Fill("trinity/pair_time",2000,-200,200,hitA.timestamp - hitB.timestamp,
+                                                   200,0,200,hitA.id);
+        // pick which to take - right now, just taking A.
+        hits.emplace_back(hitA);
+        break;  
+      }
+      continue;
+    }
+  }
+  hits_A.clear();
+  hits_B.clear();
   return hits.size();
 } 

@@ -17,9 +17,9 @@ class TrinityHit {
 
   //private:
     uint32_t address;
-    int16_t  id;
-    double peak;
-    double tail;
+    int16_t  id;     // after matching; i am going to use id
+    double peak;     //   to store the new "trinity" number  
+    double tail;     //   id = (id -80)/2; starts at zero.
     double total;
     double time;
     double timestamp;
@@ -43,7 +43,12 @@ class Trinity : public GDetector {
     void Clear();
   //private:
 
+
     std::vector<TrinityHit> hits;
+
+
+    std::vector<TrinityHit> hits_A; //! even  temp container to match pairs.
+    std::vector<TrinityHit> hits_B; //! odd   temp container to match pairs.
 
 
   ClassDefOverride(Trinity,1)
