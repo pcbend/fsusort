@@ -50,7 +50,9 @@ Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false),
   LoadOptions(argc,argv);
   LoadStyle();
   ApplyOptions();
-  SetPrompt("fsu [%d] ");
+  //SetPrompt("fsu [%d] ");
+  //SetPrompt("\033[38;2;127;0;32m\033[48;2;255;215;0mfsu -> [%d] \033[0m ");
+  SetPrompt("\033[38;2;127;0;32;1m\033[48;2;255;215;0mfsu -> [%d] \033[0m ");
 
 }
 

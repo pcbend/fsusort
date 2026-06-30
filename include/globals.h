@@ -26,6 +26,9 @@ extern std::atomic<bool> gShutdown;
 #define CYAN       "\033[1;36m"
 #define WHITE      "\033[1;37m"
 
+#define GARNET     "\e[38;5;124m"
+#define GOLD       "\e[38;5;220m"
+
 #define DBLUE      "\033[0;34m"
 #define DYELLOW    "\033[0;33m"
 #define DGREEN     "\033[0;32m"

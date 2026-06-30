@@ -26,7 +26,10 @@ bool TrinityHit::Build(const ddasHit &fragment) {
   ecal      = fragment.GetEcal();
   timestamp = fragment.GetTimestamp();
   cfd       = fragment.GetCFD();
-  time      = fragment.GetTime();
+  if(!fragment.GetForcedCFD())
+    time      = fragment.GetTime();
+  else 
+    time = -1;
   cfdForced = fragment.GetForcedCFD();
   return true;
  }
@@ -80,8 +83,12 @@ int Trinity::BuildHits() {
         GHistogramer::Get().Fill("trinity/pair_energy",2000,-20000,20000,hitA.total  - hitB.total,
                                                     200,0,200,hitA.id);
         // check time
-        GHistogramer::Get().Fill("trinity/pair_time",2000,-200,200,hitA.timestamp - hitB.timestamp,
+        if((hitA.time>0) && (hitB.time>0)) {
+          GHistogramer::Get().Fill("trinity/pair_time",2000,-200,200,hitA.timestamp - hitB.timestamp,
                                                    200,0,200,hitA.id);
+          GHistogramer::Get().Fill("trinity/pair_time_cfd",2000,-200,200,hitA.time - hitB.time,
+                                                     200,0,200,hitA.id);
+        }
         // pick which to take - right now, just taking A.
         hits.emplace_back(hitA);
         break;  

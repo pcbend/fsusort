@@ -6,7 +6,8 @@ Unix.*.Root.MacroPath: .:$(GRUTSYS)/util:$(ROOTSYS)/macros
 Rint.History $(FSUSORTSYS)/.gint_history
 Rint.HistSize: 1000000
 
-Rint.PromptColor:  bold cyan
+#Rint.PromptColor:  bold cyan
+Rint.PromptColor:  default
 Rint.BracketColor: bold green
 Rint.BadBracketColor: bold red underlined
 Rint.TabComColor: magenta

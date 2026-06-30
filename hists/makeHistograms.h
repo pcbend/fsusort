@@ -34,7 +34,7 @@
 
   
     for(const auto& chit : event.clarion.hits) {
-      GHistogramer::Get().Fill("coinc/gt_timing",2000,-200,200, hit.timestamp - chit.timestamp,
+      GHistogramer::Get().Fill("coinc/gt_timing",400,-200,200,hit.time - chit.time,
                                                 4000, 0, 8000, chit.ecal);
     }
   }
@@ -88,6 +88,14 @@
     if(hit.timestamp < 0) continue; 
     if(hit.ecal < 30) continue;   
 
+
+    for(const auto& chit : event.clarion.hits) {
+      GHistogramer::Get().Fill("coinc/gl_timing",400,-200,200,hit.time - chit.time,
+                                                4000, 0, 8000, chit.ecal);
+      GHistogramer::Get().Fill("coinc/lg_timing",400,-200,200,hit.time - chit.time,
+                                                4000, 0, 8000, hit.ecal);
+    }
+
     for(const auto& hit2 : event.labr.hits) {
       if(hit.id == hit2.id) continue;
       if(hit2.cfd == -5) continue;
@@ -135,6 +143,9 @@
       if((1240 < e2) && (e2 < 1360)){
         GHistogramer::Get().Fill(Form("labr/dt_%i_%i_1332",hit.id,hit2.id),10000,-100,100,t1-t2,2000,0,8000,e1);
       }
+        GHistogramer::Get().Fill(Form("labr/dt",hit2.id,hit.id),10000,-100,100,t1-t2,300,0,300,hit.id);
+
+
 
       GHistogramer::Get().Fill("labr/gg",2000,0,8000,hit.ecal,
                                              2000,0,8000,hit2.ecal);
