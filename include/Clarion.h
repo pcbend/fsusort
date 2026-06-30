@@ -13,6 +13,8 @@ class ClarionHit {
     bool Build(const ddasHit&);
     void Clear();
 
+    double GetFastTime() const;
+
   //private:
     int16_t   id;
     uint32_t  address;

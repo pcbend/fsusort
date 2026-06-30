@@ -67,16 +67,16 @@
 
 
 
-  if(hit.GetId()==1 || hit.GetId()==2 || hit.GetId()==3 || hit.GetId()==10 || hit.GetId()==11 || hit.GetId()==12 || hit.GetId()==13 || hit.GetId()==16 || hit.GetId()==18 || hit.GetId()==19 || hit.GetId()==21 || hit.GetId()==22 || hit.GetId()==23 || hit.GetId()==33 || hit.GetId()==34 || hit.GetId()==37 ||  hit.GetId()==38 || hit.GetId()==40 || hit.GetId()==42 || hit.GetId()==43 || hit.GetId()==44 || hit.GetId()==48 || hit.GetId()==49 || hit.GetId()==50 || hit.GetId()==51){  //Clarion
+  /*if(hit.GetId()==1 || hit.GetId()==2 || hit.GetId()==3 || hit.GetId()==10 || hit.GetId()==11 || hit.GetId()==12 || hit.GetId()==13 || hit.GetId()==16 || hit.GetId()==18 || hit.GetId()==19 || hit.GetId()==21 || hit.GetId()==22 || hit.GetId()==23 || hit.GetId()==33 || hit.GetId()==34 || hit.GetId()==37 ||  hit.GetId()==38 || hit.GetId()==40 || hit.GetId()==42 || hit.GetId()==43 || hit.GetId()==44 || hit.GetId()==48 || hit.GetId()==49 || hit.GetId()==50 || hit.GetId()==51){  //Clarion
     if(trinity_fasttime > 0){
       GHistogramer::Get().Fill("clarion_trinity",4000,0,8000,hit.GetEcal(),
                                                   70,0,70,hit.GetId());
       clarion_fasttime = (hit.GetTimestamp() + hit.GetCFD())*10;
     }  
-  }
+  }*/
 }  
 
-  if(labr_fasttime>0 && trinity_fasttime>0) {
+  /*if(labr_fasttime>0 && trinity_fasttime>0) {
    GHistogramer::Get().Fill("dt_labr_trinity",20000,-10000,10000,labr_fasttime-trinity_fasttime);
   }	  
 
@@ -86,7 +86,7 @@
 
   if(clarion_fasttime>0 && trinity_fasttime>0) {
    GHistogramer::Get().Fill("dt_clarion_trinity",20000,-10000,10000,clarion_fasttime-trinity_fasttime);
-  }
+  }*/
 
 
 }
