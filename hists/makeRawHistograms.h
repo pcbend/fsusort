@@ -59,7 +59,7 @@
      
        
         GHistogramer::Get().Fill(Form("trinity/det%03i",hit.GetId()),2000,0,1,(tail*(20./55.))/peak,
-                                                                     4000,0,80000,total);
+                                                                     2000,0,80000,total);
         GHistogramer::Get().Fill(Form("trinity/pt%03i",hit.GetId()),2000,0,0,peak,
                                                                     2000,0,0,tail);
         //GHistogramer::Get().Fill(Form("trinity/tail%03i",hit.GetId()),2000,0,0,tail);

@@ -137,12 +137,12 @@
       //GHistogramer::Get().Fill("labr/dt_sym_summary",10000,-100,100,t2-t1,2000,0,8000,e2);
 
       //current cal is a little off, gating for 1 hr 60Co run 223
-      if((1240 < e1) && (e1 < 1360)){
-        GHistogramer::Get().Fill(Form("labr/dt_%i_%i_1332",hit2.id,hit.id),10000,-100,100,t2-t1,2000,0,8000,e2);
-      }
-      if((1240 < e2) && (e2 < 1360)){
-        GHistogramer::Get().Fill(Form("labr/dt_%i_%i_1332",hit.id,hit2.id),10000,-100,100,t1-t2,2000,0,8000,e1);
-      }
+      //if((1240 < e1) && (e1 < 1360)){
+      //  GHistogramer::Get().Fill(Form("labr/dt_%i_%i_1332",hit2.id,hit.id),10000,-100,100,t2-t1,2000,0,8000,e2);
+      //}
+      //if((1240 < e2) && (e2 < 1360)){
+      //  GHistogramer::Get().Fill(Form("labr/dt_%i_%i_1332",hit.id,hit2.id),10000,-100,100,t1-t2,2000,0,8000,e1);
+      //}
         GHistogramer::Get().Fill(Form("labr/dt",hit2.id,hit.id),10000,-100,100,t1-t2,300,0,300,hit.id);
 
 

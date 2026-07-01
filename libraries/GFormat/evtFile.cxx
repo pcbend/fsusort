@@ -178,23 +178,35 @@ int evtFile::ReadBlock(dataBlock &data, int opt) {
       ? data.eventLength - data.headerLength
       : 0;
 
-    if(traceWords > 0) {
-      //skipping traces.
-      //inFile.seekg(sizeof(uint32_t) * traceWords, std::ios::cur);
-      //inFilePos += sizeof(uint32_t) * traceWords;
-      //readRingItemByte += sizeof(uint32_t) * traceWords;
-      inFile.read(reinterpret_cast<char*>(traceBlock),
-          sizeof(uint32_t) * traceWords);
+//    if(traceWords > 0) {
+//      //skipping traces.
+//      //inFile.seekg(sizeof(uint32_t) * traceWords, std::ios::cur);
+//      //inFilePos += sizeof(uint32_t) * traceWords;
+//      //readRingItemByte += sizeof(uint32_t) * traceWords;
+//      inFile.read(reinterpret_cast<char*>(traceBlock),
+//          sizeof(uint32_t) * traceWords);
+// 
+//      inFilePos += sizeof(uint32_t) * traceWords;
+//      readRingItemByte += sizeof(uint32_t) * traceWords;
+// 
+//      data.trace.resize(data.trace_length);
+//      for(uint32_t i = 0; i < traceWords; ++i) {
+//        data.trace[2*i + 0] =  traceBlock[i]        & 0xffff;
+//        data.trace[2*i + 1] = (traceBlock[i] >> 16) & 0xffff;
+//      }
+//    }
+if(traceWords > 0) {
+  inFile.seekg(sizeof(uint32_t) * traceWords, std::ios::cur);
+  inFilePos += sizeof(uint32_t) * traceWords;
+  readRingItemByte += sizeof(uint32_t) * traceWords;
 
-      inFilePos += sizeof(uint32_t) * traceWords;
-      readRingItemByte += sizeof(uint32_t) * traceWords;
+  data.trace_length = 0;
+  data.trace.clear();
+}
 
-      data.trace.resize(data.trace_length);
-      for(uint32_t i = 0; i < traceWords; ++i) {
-        data.trace[2*i + 0] =  traceBlock[i]        & 0xffff;
-        data.trace[2*i + 1] = (traceBlock[i] >> 16) & 0xffff;
-      }
-    }
+
+
+
   }
 
   if(opt == 1) {
