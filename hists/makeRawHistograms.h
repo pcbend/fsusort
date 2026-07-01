@@ -41,10 +41,14 @@
     
     if(hit.GetId()>=64 && hit.GetId()<=191) { //trinity 
       if(hit.hasQDC && !hit.GetForcedCFD()) { 
-        double base  = hit.GetQDC()[0]+hit.GetQDC()[1];
-        double peak  = hit.GetQDC()[3] - (base)*(20./45.);
-        double tail  = hit.GetQDC()[5] - (base)*(55./45.);
-        double total = (hit.GetQDC()[3]+hit.GetQDC()[4]+hit.GetQDC()[5]) - base*(85./45);
+        //double base  = hit.GetQDC()[0]+hit.GetQDC()[1];
+        //double peak  = hit.GetQDC()[3] - (base)*(20./45.);
+        //double tail  = hit.GetQDC()[5] - (base)*(55./45.);
+        //double total = (hit.GetQDC()[3]+hit.GetQDC()[4]+hit.GetQDC()[5]) - base*(85./45);
+        double base  = hit.GetQDC()[0]+hit.GetQDC()[1]+hit.GetQDC()[2];
+        double peak  = hit.GetQDC()[3]; //- (base)*(20./80.);
+        double tail  = hit.GetQDC()[5]; //- (base)*(55./80.);
+        double total = (hit.GetQDC()[3]+hit.GetQDC()[4]+hit.GetQDC()[5]) - base*(85./80);
 
         GHistogramer::Get().Fill("QDCsummary",16000,0,0,total,   // zero-zero are auto limits
                                               300,0,300,hit.GetId());
@@ -54,8 +58,13 @@
                                             300,0,300,hit.GetId());
      
        
-        GHistogramer::Get().Fill(Form("trinity/det%03i",hit.GetId()),1000,0,1,tail/peak,
-                                                                     2000,0,64000,total);
+        GHistogramer::Get().Fill(Form("trinity/det%03i",hit.GetId()),2000,0,1,(tail*(20./55.))/peak,
+                                                                     4000,0,80000,total);
+        GHistogramer::Get().Fill(Form("trinity/pt%03i",hit.GetId()),2000,0,0,peak,
+                                                                    2000,0,0,tail);
+        //GHistogramer::Get().Fill(Form("trinity/tail%03i",hit.GetId()),2000,0,0,tail);
+        //GHistogramer::Get().Fill(Form("trinity/peak%03i",hit.GetId()),2000,0,0,peak);
+        //GHistogramer::Get().Fill(Form("trinity/total%03i",hit.GetId()),2000,0,0,total);
 
         if(hit.GetCFD() == -5) continue;
         if(total < 4000) continue;
