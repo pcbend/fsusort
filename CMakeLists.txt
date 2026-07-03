@@ -45,26 +45,6 @@ endif()
 add_subdirectory(libraries)
 
 
-#################
-#################
-
-add_executable(eventBuildingTest 
-  src/eventBuildingTest.cxx
-)
-
-target_include_directories(eventBuildingTest  
-  PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-    ${ROOT_INCLUDE_DIRS}
-)
-
-target_link_libraries(eventBuildingTest
-  PRIVATE
-    GCORE
-    GFORMAT
-    GPHYSICS
-    ${ROOT_LIBRARIES}
-)
 
 #################
 #################
@@ -150,6 +130,7 @@ function(add_fsu_executable target source)
       GFORMAT
       GPIPELINE 
       GPHYSICS
+      GBCS
       #GTYPES
       GHISTOGRAMER
       GVIEWER
@@ -171,5 +152,5 @@ add_fsu_executable(fsusort           src/fsusort.cxx)
 add_fsu_executable(simpleHists       src/simpleHists.cxx)
 #add_fsu_executable(speedTest         src/speedTest.cxx)
 #add_fsu_executable(physicsTest       src/physicsTest.cxx)
-#add_fsu_executable(eventBuildingTest src/eventBuildingTest.cxx)
+add_fsu_executable(eventBuildingTest src/eventBuildingTest.cxx)
 add_fsu_executable(waveformViewer    src/waveformViewer.cxx)

@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
   }
 
   std::string homedir = std::getenv("HOME");
-  GChannel::ReadDetmap(Form("%s/Packages/FSUSort/cals/detmap2.tsv",homedir.c_str()));
+  GChannel::ReadDetmap(Form("%s/Packages/FSUSort/cals/detmap3.tsv",homedir.c_str()));
 
   std::filesystem::path p(argv[1]);
   std::string ofile = "hist_" + p.stem().string() + ".root";
