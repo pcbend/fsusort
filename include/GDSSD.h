@@ -26,7 +26,9 @@ class GDSSD {
     
     double fTime;
 
-  private:
+    bool Triggered() const { return fFront.size() && fBack.size(); }
+
+  //private:
     std::vector<ddasHit> fFront; //!
     std::vector<ddasHit> fBack;  //!
 

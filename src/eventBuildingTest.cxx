@@ -13,13 +13,23 @@
 #include <GBCS.h>
 
 
+#include <TApplication.h>
+#include <TCanvas.h>
+#include <TH2D.h>
+#include <TSystem.h>
+
+
 void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event);
+
+void DrawDSSD(const GBCS &bcs);
 
 int main(int argc, char** argv) {
   if(argc < 2) {
     std::cerr << "usage: simpleHists file.evt\n";
     return 1;
   }
+
+  //TApplication *app = new TApplication("app",0,0);
 
   std::string homedir = std::getenv("HOME");
   GChannel::ReadDetmap(Form("%s/Packages/FSUSort/cals/detmap3.tsv",homedir.c_str()));
@@ -117,6 +127,8 @@ int main(int argc, char** argv) {
 void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
   bcs.Reset();
 
+  bool hasPin1 = false;
+
   for(const auto &hit : event) {
     switch(hit.GetId()) {
       case 0 ... 39:     // front High Gain
@@ -141,6 +153,7 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
         bcs.fI2TAC.Unpack(hit);
         break;
       case 181:
+        hasPin1 = true;
         bcs.fPin1.Unpack(hit);
       case 182:
         bcs.fPin2.Unpack(hit);
@@ -153,10 +166,16 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
     }
   }
 
+  //if(hasPin1 && bcs.Triggered()) printf(RED);
+  //else printf(BLUE);
   //printf("LOW");
   //bcs.fLowGain.Print();
   //printf("HIGH");
   //bcs.fHighGain.Print();
+  //printf(RESET_COLOR);
+  //printf("\n\n");
+
+  //if(hasPin1 && bcs.Triggered()) DrawDSSD(bcs);
 
   if((bcs.fPin1.Time() > 10) && (bcs.fI2N.Time()>10)) { 
     GHistogramer::Get().Fill("pid_S",4000,0,0,bcs.TOFS(),
@@ -164,6 +183,12 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
     GHistogramer::Get().Fill("pid_N",4000,0,0,bcs.TOFN(),
                                   4000,0,16000,bcs.dE());
     //printf("TOF: %.1f - %.1f \t\t %.1f\n",bcs.fI2N.Time(),bcs.fPin1.Time(),bcs.TOF());
+  
+    GHistogramer::Get().Fill("tof_S",3600,0,7200,bcs.fPin1.Time()/1.e8,
+                                     4000,0,0,bcs.TOFS());
+    GHistogramer::Get().Fill("tof_N",3600,0,7200,bcs.fPin1.Time()/1.e8,
+                                     4000,0,0,bcs.TOFN());
+
   }
 
 
@@ -172,5 +197,44 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
 } 
 
 
+void DrawDSSD(const GBCS &bcs) {
+
+  //TApplication app("app",0,0);
+
+  TCanvas *c1 = new TCanvas;
+  TH2D low("low","low",40,0,40,40,0,40);
+  TH2D high("high","high",40,0,40,40,0,40);
+  low.SetStats(0);
+  high.SetStats(0);
+
+  for(const auto& front:bcs.fLowGain.fFront) {
+    for(const auto& back:bcs.fLowGain.fBack) {
+      int fs = front.GetId() - 40;
+      int bs = back.GetId() - 120;
+      low.SetBinContent(fs,bs,front.GetEcal());
+    }
+  }
+  for(const auto& front:bcs.fHighGain.fFront) {
+    for(const auto& back:bcs.fHighGain.fBack) {
+      int fs = front.GetId() - 0;
+      int bs = back.GetId() - 80;
+      high.SetBinContent(fs,bs,front.GetEcal());
+    }
+  }
+  c1->Divide(2,1);
+  c1->cd(1);
+  low.Draw("colz");
+  c1->cd(2);
+  high.Draw("colz");
+
+  c1->Modified(); c1->Update();
+
+  gSystem->ProcessEvents();
+  
+  std::cin.get();
+
+  //app.Run(true);
+
+}
 
 

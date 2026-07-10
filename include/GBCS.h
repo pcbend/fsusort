@@ -19,6 +19,7 @@ class GBCS {
     double TOFN() const { return fI2N.Charge(); }
     double dE()  const { return fPin1.Ecal(); }
 
+    bool Triggered() const { return fLowGain.Triggered() || fHighGain.Triggered(); }
 
   //private:
     GPIN fI2N;   // this is a TAC!!
