@@ -24,22 +24,48 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event);
 void DrawDSSD(const GBCS &bcs);
 
 int main(int argc, char** argv) {
+
+
   if(argc < 2) {
     std::cerr << "usage: simpleHists file.evt\n";
     return 1;
   }
+
+  // reading multiple .evt files 
+  std::vector<std::string> InputFiles;
+  for(int i=1; i<argc; ++i) {
+    InputFiles.push_back(argv[i]);
+  }
+  std::sort(InputFiles.begin(), InputFiles.end());
+
+
 
   //TApplication *app = new TApplication("app",0,0);
 
   std::string homedir = std::getenv("HOME");
   GChannel::ReadDetmap(Form("%s/Packages/FSUSort/cals/detmap3.tsv",homedir.c_str()));
 
-  std::filesystem::path p(argv[1]);
-  std::string ofile = "hist_" + p.stem().string() + ".root";
+//  std::filesystem::path p(argv[1]);
+//  std::string ofile = "hist_" + p.stem().string() + ".root";
 
+// creating combined output filename
+  std::filesystem::path p(InputFiles.front());
+  std::string stem = p.stem().string();
+  
+  int run = -1;
+  
+  if(std::sscanf(stem.c_str(), "run-%d-%*d", &run) != 1) {
+    std::cerr << "Invalid EVT filename: " << stem << "\n";
+    return 1;
+  }
+  
+  std::string ofile = Form("hist%04d.root", run);
   GHistogramer::Get().SetOutFile(ofile);
 
-  evtLoop  reader(argv[1], 500000,true); // 5 ms;
+
+
+// evtLoop  reader(argv[1], 500000,true); // 5 ms;
+  evtLoop  reader(InputFiles, 500000, true);  // 5 ms;
   ddasLoop converter(reader,200,1);   // 10ns -> 200 = 2us
 
   reader.Start();
@@ -55,19 +81,59 @@ int main(int argc, char** argv) {
 
   std::cout << HIDE_CURSOR << std::flush;
 
+
+// DDAS timestamp continuity check
+// double firstPin1Time = -1;
+// double lastPin1Time = -1;
+
+
+
   std::vector<ddasHit> event;
   GBCS bcs;
   while(!converter.Finished() || !converter.Empty()) {
     if(converter.TryPop(event)) {
       ProcessEvent(bcs,event);
+      
+    // timestamp check
+    
+//    if(bcs.fPin1.Time() > 0) {
+//      if(firstPin1Time < 0)
+//        firstPin1Time = bcs.fPin1.Time();
+//        lastPin1Time  = bcs.fPin1.Time();
+//    }
       event.clear();
     }
+
+
+//    if(firstPin1Time >=0 && lastPin1Time >= 0){    
+//      printf("\nPIN1 timestamps:\n");
+//      printf("  first raw: %.0f\n", firstPin1Time);
+//      printf("  last raw:  %.0f\n", lastPin1Time);
+//      
+//      printf("  first sec: %.6f\n", firstPin1Time / 1.e8);
+//      printf("  last sec:  %.6f\n", lastPin1Time / 1.e8);
+//      printf("  duration:  %.6f sec\n",
+//         (lastPin1Time - firstPin1Time) / 1.e8);
+//      }else{
+//      printf("\nNo PIN1 hits were found.\n");
+//      }
+
+
 
     auto now = std::chrono::steady_clock::now();
 
     if(now - lastPrint > std::chrono::milliseconds(500)) {
       auto e = reader.GetStats();
       auto d = converter.GetStats();
+
+      constexpr int barWidth = 30;
+      
+      double percent = e.Percent();
+      int filled = static_cast<int>((percent / 100.0) * barWidth);
+      filled = std::clamp(filled, 0, barWidth);
+      
+      std::string progressBar(filled, '#');
+      progressBar.append(barWidth - filled, '-');
 
       double dt = std::chrono::duration<double>(now - lastTime).count();
 
@@ -83,11 +149,15 @@ int main(int argc, char** argv) {
         eventRate = (d.eventsBuilt - lastEvents) / dt;
       }
 
-      printf(CLEAR_LINE "file=%6.2f%%  %.1f/%.1f MB  %7.1f MB/s\n",
-          e.Percent(),
+      printf(
+          CLEAR_LINE "[%s] %6.2f%%  file %llu/%llu  %.1f/%.1f MB  %7.1f MB/s\n",
+          progressBar.c_str(),
+          percent,
+          static_cast<unsigned long long>(e.currentFile),
+          static_cast<unsigned long long>(e.totalFiles),
           e.filePos  / 1024.0 / 1024.0,
           e.fileSize / 1024.0 / 1024.0,
-          mbps);
+          mbps);     
 
       printf(CLEAR_LINE "blocks=%llu (%7.0f/s)  hits=%llu (%7.0f/s)  events=%llu (%7.0f/s)",
           (unsigned long long)e.blocksRead,
@@ -117,7 +187,6 @@ int main(int argc, char** argv) {
 
   converter.Stop();
   reader.Stop();
-
   GHistogramer::Get().Close();
 
   return 0;
@@ -166,6 +235,12 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
     }
   }
 
+
+
+
+
+
+
   //if(hasPin1 && bcs.Triggered()) printf(RED);
   //else printf(BLUE);
   //printf("LOW");
@@ -177,18 +252,21 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
 
   //if(hasPin1 && bcs.Triggered()) DrawDSSD(bcs);
 
+
+// Validity check between PIN1 and I2N
   if((bcs.fPin1.Time() > 10) && (bcs.fI2N.Time()>10)) { 
-    GHistogramer::Get().Fill("pid_S",4000,0,0,bcs.TOFS(),
-                                  4000,0,16000,bcs.dE());
     GHistogramer::Get().Fill("pid_N",4000,0,0,bcs.TOFN(),
                                   4000,0,16000,bcs.dE());
-    //printf("TOF: %.1f - %.1f \t\t %.1f\n",bcs.fI2N.Time(),bcs.fPin1.Time(),bcs.TOF());
-  
-    GHistogramer::Get().Fill("tof_S",3600,0,7200,bcs.fPin1.Time()/1.e8,
-                                     4000,0,0,bcs.TOFS());
     GHistogramer::Get().Fill("tof_N",3600,0,7200,bcs.fPin1.Time()/1.e8,
-                                     4000,0,0,bcs.TOFN());
+                                     4000,0,64000,bcs.TOFN());
+  }
 
+// Validity check between PIN1 and I2S
+  if((bcs.fPin1.Time() > 10) && (bcs.fI2S.Time()>10)) { 
+    GHistogramer::Get().Fill("pid_S",4000,0,0,bcs.TOFS(),
+                                  4000,0,16000,bcs.dE());
+    GHistogramer::Get().Fill("tof_S",3600,0,7200,bcs.fPin1.Time()/1.e8,
+                                     4000,0,64000,bcs.TOFS());
   }
 
 
