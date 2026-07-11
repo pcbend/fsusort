@@ -235,22 +235,43 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
     }
   }
 
+//    if(hasPin1 && bcs.Triggered()) printf(RED);
+//    else printf(BLUE);
+//    printf("LOW");
+//    bcs.fLowGain.Print();
+//    printf("HIGH");
+//    bcs.fHighGain.Print();
+//    printf(RESET_COLOR);
+//    printf("\n\n");
+//
+//    if(hasPin1 && bcs.Triggered()) DrawDSSD(bcs);
 
 
+// Position Plot 
+bcs.fHighGain.Build();
+bcs.fLowGain.Build();
 
+// High Gain Position
+  if(bcs.fHighGain.HasPosition()) {
+    GHistogramer::Get().Fill("dssd/High_gain_position",1000,0,80,bcs.fHighGain.X(),
+                                                       1000,0,80,bcs.fHighGain.Y());
+  }
 
+// Low Gain Position
+  if(bcs.fLowGain.HasPosition()) {
+    GHistogramer::Get().Fill("dssd/Low_gain_position",1000,0,80,bcs.fLowGain.X(),
+                                                      1000,0,80,bcs.fLowGain.Y());
+  }
 
+// Net Position [ if else statement to avoid double counting]
+  if(bcs.fHighGain.HasPosition()) {
+    GHistogramer::Get().Fill("dssd/net_position",800,0,80, bcs.fHighGain.X(),
+                                             800,0,80, bcs.fHighGain.Y());
+  } else if (bcs.fLowGain.HasPosition()) {
+    GHistogramer::Get().Fill("dssd/net_position",800,0,80, bcs.fLowGain.X(),
+                                             800,0,80, bcs.fLowGain.Y());
+  }
 
-  //if(hasPin1 && bcs.Triggered()) printf(RED);
-  //else printf(BLUE);
-  //printf("LOW");
-  //bcs.fLowGain.Print();
-  //printf("HIGH");
-  //bcs.fHighGain.Print();
-  //printf(RESET_COLOR);
-  //printf("\n\n");
-
-  //if(hasPin1 && bcs.Triggered()) DrawDSSD(bcs);
 
 
 // Validity check between PIN1 and I2N
@@ -270,49 +291,90 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
   }
 
 
-  //bcs.fPin1.Print();
+// Front and Back strip v/s Channel ID (calibrated)
+  for(const auto& hit : event) {
+    const int id = hit.GetId();
+  
+    if(id >= 0 && id <= 79) {
+      GHistogramer::Get().Fill("dssd/front_energy_vs_channel",4000,0,16000, hit.GetEcal(),
+          80, 0, 80, id);
+    }else if(id >= 80 && id <= 159) {
+      GHistogramer::Get().Fill("dssd/back_energy_vs_channel",4000,0,16000, hit.GetEcal(),
+          80, 80, 160, id);
+    }
+  }
+
+
+// Front v/s Back Energy
+ 
+  // restricting to multiplicity = 1
+   if(bcs.fHighGain.fFront.size() == 1 && bcs.fHighGain.fBack.size() == 1) {
+     const auto& front = bcs.fHighGain.fFront.front();
+     const auto& back  = bcs.fHighGain.fBack.front();
+
+     GHistogramer::Get().Fill("dssd/high_front_energy_vs_back_energy_mult=1",4000, 0, 16000, front.GetEcal(),
+         4000, 0, 16000, back.GetEcal());
+   }
+
+ 
+  // pairing every hit 
+    // High-gain front/back pairs
+    for(const auto& front : bcs.fHighGain.fFront) {
+      for(const auto& back : bcs.fHighGain.fBack) {
+        GHistogramer::Get().Fill("dssd/front_energy_vs_back_energy",4000, 0, 32000, front.GetEcal(),
+            4000, 0, 32000, back.GetEcal());
+      }
+    }
+    
+    // Low-gain front/back pairs
+    for(const auto& front : bcs.fLowGain.fFront) {
+      for(const auto& back : bcs.fLowGain.fBack) {
+        GHistogramer::Get().Fill("dssd/front_energy_vs_back_energy",4000, 0, 32000, front.GetEcal(),
+            4000, 0, 32000, back.GetEcal());
+      }
+    }
 
 } 
 
 
-void DrawDSSD(const GBCS &bcs) {
-
-  //TApplication app("app",0,0);
-
-  TCanvas *c1 = new TCanvas;
-  TH2D low("low","low",40,0,40,40,0,40);
-  TH2D high("high","high",40,0,40,40,0,40);
-  low.SetStats(0);
-  high.SetStats(0);
-
-  for(const auto& front:bcs.fLowGain.fFront) {
-    for(const auto& back:bcs.fLowGain.fBack) {
-      int fs = front.GetId() - 40;
-      int bs = back.GetId() - 120;
-      low.SetBinContent(fs,bs,front.GetEcal());
-    }
-  }
-  for(const auto& front:bcs.fHighGain.fFront) {
-    for(const auto& back:bcs.fHighGain.fBack) {
-      int fs = front.GetId() - 0;
-      int bs = back.GetId() - 80;
-      high.SetBinContent(fs,bs,front.GetEcal());
-    }
-  }
-  c1->Divide(2,1);
-  c1->cd(1);
-  low.Draw("colz");
-  c1->cd(2);
-  high.Draw("colz");
-
-  c1->Modified(); c1->Update();
-
-  gSystem->ProcessEvents();
-  
-  std::cin.get();
-
-  //app.Run(true);
-
-}
+// void DrawDSSD(const GBCS &bcs) {
+// 
+//   //TApplication app("app",0,0);
+// 
+//   TCanvas *c1 = new TCanvas;
+//   TH2D low("low","low",40,0,40,40,0,40);
+//   TH2D high("high","high",40,0,40,40,0,40);
+//   low.SetStats(0);
+//   high.SetStats(0);
+// 
+//   for(const auto& front:bcs.fLowGain.fFront) {
+//     for(const auto& back:bcs.fLowGain.fBack) {
+//       int fs = front.GetId() - 40;
+//       int bs = back.GetId() - 120;
+//       low.SetBinContent(fs,bs,front.GetEcal());
+//     }
+//   }
+//   for(const auto& front:bcs.fHighGain.fFront) {
+//     for(const auto& back:bcs.fHighGain.fBack) {
+//       int fs = front.GetId() - 0;
+//       int bs = back.GetId() - 80;
+//       high.SetBinContent(fs,bs,front.GetEcal());
+//     }
+//   }
+//   c1->Divide(2,1);
+//   c1->cd(1);
+//   low.Draw("colz");
+//   c1->cd(2);
+//   high.Draw("colz");
+// 
+//   c1->Modified(); c1->Update();
+// 
+//   gSystem->ProcessEvents();
+//   
+//   std::cin.get();
+// 
+//   //app.Run(true);
+// 
+// }
 
 

@@ -16,7 +16,12 @@ class GDSSD {
     void AddFrontHit(const ddasHit &hit) { fFront.emplace_back(hit); }
     void AddBackHit(const ddasHit &hit)  { fBack.emplace_back(hit); }
 
-    void Build();
+// implementing DSSD front v/s back position plot
+    void Build();  
+    bool HasPosition() const {return fX >= 0 && fY >= 0;}
+    double X() const {return fX;}
+    double Y() const {return fY;}  // channel id to strip calculation done in GDSSD.cxx   
+
 
     void Print() const;
 
