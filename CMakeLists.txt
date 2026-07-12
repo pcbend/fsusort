@@ -20,6 +20,7 @@ find_package(ROOT REQUIRED
   Tree
   Hist
   Thread
+  Spectrum
 ) 
 
 set(CMAKE_CXX_STANDARD ${ROOT_CXX_STANDARD})

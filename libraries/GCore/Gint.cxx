@@ -300,7 +300,7 @@ long Gint::ProcessLine(const char* line, bool sync, int* error) {
   if(!sline.Length()) {
     return 0;
   }
-  sline.ReplaceAll("TCanvas","GCanvas");
+//  sline.ReplaceAll("TCanvas","GCanvas");
 
   if(std::this_thread::get_id() != fMainThreadId){
     printf("Not the main thread...  ");

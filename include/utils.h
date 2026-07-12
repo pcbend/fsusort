@@ -12,6 +12,8 @@
 #include <limits.h>
 #include <string>
 #include <vector>
+#include <cstdio>
+#include <filesystem>
 
 #include <regex>
 
@@ -37,6 +39,46 @@ std::vector<std::string> tokenizeString(std::string path,char delimiter='/') {
   }
   return parts;
 }
+
+bool getRunNumber(const std::string& infile,int& run,int& subrun) {
+  const std::string stem = std::filesystem::path(infile).stem().string();
+
+  run = -1;
+  subrun = -1;
+
+  // Example: hist1102-00.root
+  if(std::sscanf( stem.c_str(), "hist%d-%d", &run, &subrun) == 2) {
+    return true;
+  }
+
+  // Example: hist1102.root
+  if(std::sscanf( stem.c_str(),"hist%d",&run) == 1) {
+    subrun = -1;
+    return true;
+  }
+
+  return false;
+}
+
+// void getRunNumber(std::string infile, int& run, int& subrun) {
+//   std::size_t one = infile.rfind(".root");
+//   std::size_t two = infile.rfind("-", one);
+//   std::size_t three = infile.rfind("-", two - 1);
+// 
+//   std::string srun;
+//   std::string ssubrun;
+// 
+//   if(three == std::string::npos) {
+//     srun = infile.substr(two - 4, 4);
+//     ssubrun = infile.substr(two + 1, one - two - 1);
+//   } else {
+//     srun = infile.substr(three + 1, two - three - 1);
+//     ssubrun = infile.substr(two + 1, one - two - 1);
+//   }
+// 
+//   run = std::atoi(srun.c_str());
+//   subrun = std::atoi(ssubrun.c_str());
+// }
 
 
 #ifdef __LINUX__

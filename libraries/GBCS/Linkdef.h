@@ -13,5 +13,6 @@
 
 #pragma link C++ class GBCS+;
 
+#pragma link C++ class TOFCorrector+;
 
 #endif

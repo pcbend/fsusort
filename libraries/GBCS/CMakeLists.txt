@@ -4,6 +4,7 @@ add_library(GBCS SHARED
   GBCS.cxx
   GPIN.cxx
   GDSSD.cxx
+  TOFCorrector.cxx
   #GSSSD.cxx
 )
 
@@ -18,6 +19,7 @@ root_generate_dictionary(G__GBCS
   GBCS.h
   GPIN.h
   GDSSD.h
+  TOFCorrector.h
   #GSSSD.h
   MODULE GBCS
   LINKDEF Linkdef.h
@@ -29,6 +31,7 @@ target_link_libraries(GBCS
     GHISTOGRAMER
     ROOT::Core
     ROOT::RIO
+    ROOT::Spectrum
 )
 
 

@@ -6,6 +6,10 @@
 #include <ddasHit.h>
 #include <GChannel.h>
 #include <GHistogramer.h>
+#include <TOFCorrector.h>
+
+#include <filesystem>
+#include <memory>
 
 #include <set>
 #include <globals.h>
@@ -19,24 +23,58 @@
 #include <TSystem.h>
 
 
-void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event);
+void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event, const TOFCorrector* tofCorrector);
 
 void DrawDSSD(const GBCS &bcs);
 
 int main(int argc, char** argv) {
 
-
   if(argc < 2) {
-    std::cerr << "usage: simpleHists file.evt\n";
+    std::cerr
+        << "usage: eventBuildingTest [correction.tof] file.evt [file.evt ...]\n";
     return 1;
   }
-
-  // reading multiple .evt files 
+  
   std::vector<std::string> InputFiles;
-  for(int i=1; i<argc; ++i) {
-    InputFiles.push_back(argv[i]);
+  std::string correctionFile;
+  
+  for(int i = 1; i < argc; ++i) {
+    std::filesystem::path argument(argv[i]);
+    const std::string extension = argument.extension().string();
+  
+    if(extension == ".evt") {
+      InputFiles.push_back(argument.string());
+    } else if(extension == ".tof") {
+      if(!correctionFile.empty()) {
+        std::cerr << "Only one .tof file may be supplied\n";
+        return 1;
+      }
+  
+      correctionFile = argument.string();
+    } else {
+      std::cerr << "Unsupported input file: " << argument << "\n";
+      return 1;
+    }
   }
+  
+  if(InputFiles.empty()) {
+    std::cerr << "No EVT files supplied\n";
+    return 1;
+  }
+  
   std::sort(InputFiles.begin(), InputFiles.end());
+
+//   if(argc < 2) {
+//     std::cerr << "usage: simpleHists file.evt\n";
+//     return 1;
+//   }
+// 
+//   // reading multiple .evt files 
+//   std::vector<std::string> InputFiles;
+//   for(int i=1; i<argc; ++i) {
+//     InputFiles.push_back(argv[i]);
+//   }
+//   std::sort(InputFiles.begin(), InputFiles.end());
 
 
 
@@ -59,10 +97,24 @@ int main(int argc, char** argv) {
     return 1;
   }
   
-  std::string ofile = Form("hist%04d.root", run);
+  std::string ofile;
+  if(correctionFile.empty()) {
+    ofile = Form("hist%04d.root", run);
+  }else{
+    ofile = Form("hist%04d_tofcorrekted.root", run);
+  }
   GHistogramer::Get().SetOutFile(ofile);
 
-
+  std::unique_ptr<TOFCorrector> tofCorrector;
+  
+  if(!correctionFile.empty()) {
+    std::cout
+        << "Loading TOF correction: "
+        << correctionFile
+        << "\n";
+  
+    tofCorrector = std::make_unique<TOFCorrector>(correctionFile);
+  }
 
 // evtLoop  reader(argv[1], 500000,true); // 5 ms;
   evtLoop  reader(InputFiles, 500000, true);  // 5 ms;
@@ -92,7 +144,7 @@ int main(int argc, char** argv) {
   GBCS bcs;
   while(!converter.Finished() || !converter.Empty()) {
     if(converter.TryPop(event)) {
-      ProcessEvent(bcs,event);
+      ProcessEvent(bcs,event,tofCorrector.get());
       
     // timestamp check
     
@@ -193,7 +245,7 @@ int main(int argc, char** argv) {
 }
 
 
-void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event) {
+void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event, const TOFCorrector* tofCorrector) {
   bcs.Reset();
 
   bool hasPin1 = false;
@@ -276,18 +328,33 @@ bcs.fLowGain.Build();
 
 // Validity check between PIN1 and I2N
   if((bcs.fPin1.Time() > 10) && (bcs.fI2N.Time()>10)) { 
-    GHistogramer::Get().Fill("pid_N",4000,0,0,bcs.TOFN(),
+    GHistogramer::Get().Fill("PID/pid_N",4000,0,64000,bcs.TOFN(),
                                   4000,0,16000,bcs.dE());
-    GHistogramer::Get().Fill("tof_N",3600,0,7200,bcs.fPin1.Time()/1.e8,
+    GHistogramer::Get().Fill("TOF/tof_N",3600,0,7200,bcs.fPin1.Time()/1.e8,
                                      4000,0,64000,bcs.TOFN());
   }
 
 // Validity check between PIN1 and I2S
   if((bcs.fPin1.Time() > 10) && (bcs.fI2S.Time()>10)) { 
-    GHistogramer::Get().Fill("pid_S",4000,0,0,bcs.TOFS(),
+  const double runtime = bcs.fPin1.Time() / 1.e8;
+  const double rawTOF = bcs.TOFS();
+
+    GHistogramer::Get().Fill("PID/pid_S",4000,0,64000,bcs.TOFS(),
                                   4000,0,16000,bcs.dE());
-    GHistogramer::Get().Fill("tof_S",3600,0,7200,bcs.fPin1.Time()/1.e8,
+    GHistogramer::Get().Fill("TOF/tof_S",3600,0,7200,bcs.fPin1.Time()/1.e8,
                                      4000,0,64000,bcs.TOFS());
+  
+    // tof_S used for the .tof calibration
+   if(tofCorrector) {
+     const double correctedTOF = tofCorrector->Correct(rawTOF,runtime);
+
+     GHistogramer::Get().Fill("TOF/tof_S_corr",3600, 0, 7200, runtime,
+                                               4000, 0, 64000, correctedTOF);
+   // TOF is x-axis for PID
+     GHistogramer::Get().Fill("PID/pid_S_Corr",4000, 0, 64000, correctedTOF,
+                                               4000, 0, 16000, bcs.dE());
+   }
+
   }
 
 
