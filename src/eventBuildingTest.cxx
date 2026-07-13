@@ -276,11 +276,16 @@ void ProcessEvent(GBCS &bcs,const std::vector<ddasHit> &event, const TOFCorrecto
       case 181:
         hasPin1 = true;
         bcs.fPin1.Unpack(hit);
+        break;
       case 182:
         bcs.fPin2.Unpack(hit);
+        break;
       case 183:
         bcs.fPin3.Unpack(hit);
-    
+        break;
+      case 272 ... 287:  // SSSD strips 0-15 (16 strips)
+        bcs.fSSSD.AddHit(hit);
+      break;
 
       default:
         break;
@@ -305,23 +310,23 @@ bcs.fLowGain.Build();
 
 // High Gain Position
   if(bcs.fHighGain.HasPosition()) {
-    GHistogramer::Get().Fill("dssd/High_gain_position",1000,0,80,bcs.fHighGain.X(),
-                                                       1000,0,80,bcs.fHighGain.Y());
+    GHistogramer::Get().Fill("dssd/High_gain_position",40,0,40,bcs.fHighGain.X(),
+                                                       40,0,40,bcs.fHighGain.Y());
   }
 
 // Low Gain Position
   if(bcs.fLowGain.HasPosition()) {
-    GHistogramer::Get().Fill("dssd/Low_gain_position",1000,0,80,bcs.fLowGain.X(),
-                                                      1000,0,80,bcs.fLowGain.Y());
+    GHistogramer::Get().Fill("dssd/Low_gain_position",40,0,40,bcs.fLowGain.X(),
+                                                      40,0,40,bcs.fLowGain.Y());
   }
 
 // Net Position [ if else statement to avoid double counting]
   if(bcs.fHighGain.HasPosition()) {
-    GHistogramer::Get().Fill("dssd/net_position",800,0,80, bcs.fHighGain.X(),
-                                             800,0,80, bcs.fHighGain.Y());
+    GHistogramer::Get().Fill("dssd/net_position",40,0,40, bcs.fHighGain.X(),
+                                             40,0,40, bcs.fHighGain.Y());
   } else if (bcs.fLowGain.HasPosition()) {
-    GHistogramer::Get().Fill("dssd/net_position",800,0,80, bcs.fLowGain.X(),
-                                             800,0,80, bcs.fLowGain.Y());
+    GHistogramer::Get().Fill("dssd/net_position",40,0,40, bcs.fLowGain.X(),
+                                             40,0,40, bcs.fLowGain.Y());
   }
 
 
@@ -400,6 +405,41 @@ bcs.fLowGain.Build();
             4000, 0, 32000, back.GetEcal());
       }
     }
+
+
+  // SSSD Plots
+    // SSSD Energy v/s Channel
+    for(const auto& hit : bcs.fSSSD.Hits()) {
+      const int strip = hit.GetId() - 272;
+
+      GHistogramer::Get().Fill("sssd/energy_vs_strip",4000,0,32000, hit.GetEcal(),
+                                                       40,0,40,strip);
+    }
+
+    // DSSD–SSSD component-energy correlations
+    auto FillEnergyCorrelations = [&](const char* gain, const GDSSD& dssd) {
+    
+      if(!dssd.HasEnergy())
+        return;  
+      if(bcs.fSSSD.Multiplicity() != 1)  // Begin with clean single-strip SSSD events.
+        return;  
+      const double eSSSD = bcs.fSSSD.MaximumEnergy();
+      if(eSSSD <= 0.0)
+        return;
+    
+      const double eDSSD = dssd.Energy();
+      const double eTotal = eDSSD + eSSSD;
+    
+      GHistogramer::Get().Fill(Form("sssd/%s/dssd_energy_vs_sssd_energy", gain),4000, 0, 32000, eSSSD,
+                                                           4000, 0, 32000, eDSSD);   
+      GHistogramer::Get().Fill(Form("sssd/%s/dssd_energy_vs_total_energy", gain),4000, 0, 64000, eTotal,
+                                                                                 4000, 0, 32000, eDSSD);
+      GHistogramer::Get().Fill(Form("sssd/%s/sssd_energy_vs_total_energy", gain),4000, 0, 64000, eTotal,
+                                                                                 4000, 0, 32000, eSSSD);
+    };
+    
+      FillEnergyCorrelations("high_gain",bcs.fHighGain);
+      FillEnergyCorrelations("low_gain",bcs.fLowGain);
 
 } 
 

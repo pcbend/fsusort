@@ -25,6 +25,11 @@ class GDSSD {
 
     void Print() const;
 
+    double FrontEnergySum() const;
+    double BackEnergySum() const;
+    double Energy() const;
+    bool HasEnergy() const;
+
   //private:
     double fX;
     double fY;

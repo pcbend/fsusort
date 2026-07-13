@@ -5,7 +5,7 @@
 //#pragma link C++ class GClover+;
 //#pragma link C++ class std::vector<GClover>+;
 
-//#pragma link C++ class GSSSD+;
+#pragma link C++ class GSSSD+;
 
 #pragma link C++ class GDSSD+;
 

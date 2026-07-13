@@ -5,7 +5,7 @@ add_library(GBCS SHARED
   GPIN.cxx
   GDSSD.cxx
   TOFCorrector.cxx
-  #GSSSD.cxx
+  GSSSD.cxx
 )
 
 target_include_directories(GBCS
@@ -20,7 +20,7 @@ root_generate_dictionary(G__GBCS
   GPIN.h
   GDSSD.h
   TOFCorrector.h
-  #GSSSD.h
+  GSSSD.h
   MODULE GBCS
   LINKDEF Linkdef.h
 )

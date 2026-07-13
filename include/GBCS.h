@@ -3,7 +3,7 @@
 
 #include <GPIN.h>
 #include <GDSSD.h>
-
+#include <GSSSD.h>
 
 #include <TObject.h>
 
@@ -33,7 +33,7 @@ class GBCS {
     GDSSD fLowGain;
     GDSSD fHighGain;
 
-    //GSSSD fVeto;
+    GSSSD fSSSD;
 
     //std::vector<GClover> fCloverHits; 
 

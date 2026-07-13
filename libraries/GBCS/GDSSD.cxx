@@ -93,3 +93,35 @@ void GDSSD::Build() {
 }
 
 
+double GDSSD::FrontEnergySum() const {
+  double sum = 0.0;
+
+  for(const auto& hit : fFront) {
+    if(hit.GetEcal() > 0.0)
+      sum += hit.GetEcal();
+  }
+  return sum;
+}
+
+
+double GDSSD::BackEnergySum() const {
+  double sum = 0.0;
+
+  for(const auto& hit : fBack) {
+    if(hit.GetEcal() > 0.0)
+      sum += hit.GetEcal();
+  }
+  return sum;
+}
+
+bool GDSSD::HasEnergy() const {
+  return FrontEnergySum() > 0.0 && BackEnergySum() > 0.0;
+}
+
+double GDSSD::Energy() const {
+  if(!HasEnergy()) return 0.0;
+  return 0.5 * (FrontEnergySum() + BackEnergySum()); // same ion goes thru both and deposits the same energy
+  // so the total is basically a double of the actual Energy, that's why as a rough estimate i am doing *0.5
+}
+
+

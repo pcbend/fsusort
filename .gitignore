@@ -1,4 +1,4 @@
-
+evtfiles
 build/
 
 bin/
@@ -14,6 +14,7 @@ a.out
 *.log
 *.dat
 *.c
+*.tof
 
 .DS_Store
 .gint_history

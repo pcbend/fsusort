@@ -13,4 +13,6 @@ void GBCS::Reset() {
 
   fLowGain.Reset();
   fHighGain.Reset();
+
+  fSSSD.Reset();
 }

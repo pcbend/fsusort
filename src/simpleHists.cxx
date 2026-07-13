@@ -171,7 +171,7 @@ void MakeHistograms(const std::vector<ddasHit> &event) {
  
   for(auto hit : event) {
     
-    GHistogramer::Get().Fill("ecal",8000,0,4000,hit.GetEcal(),
+    GHistogramer::Get().Fill("ecal",8000,0,64000,hit.GetEcal(),
                                        300,0,300,hit.GetId());
     GHistogramer::Get().Fill("raw",16000,0,64000,hit.GetCharge(),
                                        300,0,300,hit.GetId());
