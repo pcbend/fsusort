@@ -7,6 +7,7 @@ void GDSSD::Reset() {
   fX = -1;
   fY = -1;
   fTime = -1;
+  fEnergy = -1;
   fFront.clear();
   fBack.clear();
 }
@@ -27,18 +28,14 @@ void GDSSD::Print() const {
 
 // Defining front and back strip from channel IDs
 
-static int FrontStrip(int id) {
+int GDSSD::GetStrip(const ddasHit &hit) const {
+  int id = hit.GetId();
   if(id >= 0 && id <= 39)
   return id;                  // returning Front High Gain 
 
   if(id >= 40 && id <=79)
   return id -40;              // returning Front Low Gain
-
-  return -1;
-}
-
-
-static int BackStrip(int id) {
+  
   if(id >= 80 && id <= 119)
   return id - 80;             // returning Back High gain
 
@@ -48,20 +45,32 @@ static int BackStrip(int id) {
   return -1;
 }
 
+
 // Weighted average to get XY position == (front strip, back strip)
 
 void GDSSD::Build() {
 
-  
+  double sumFront    = 0;
+  double sumBack     = 0;
+  double weightFront = 0;
+  double weightBack  = 0;
+
   for(const auto& front : fFront) {
     for(const auto& back : fBack) {
       if(abs(front.GetTime()-back.GetTime())>100) continue;
-      if(abs(front.GetEcal()-back.GetEcal())>1000) continue;
+      //if(abs(front.GetEcal()-back.GetEcal())>1000) continue;
       //build a pixel, remember used strips.
+      sumFront += front.GetEcal(); 
+      sumBack  += back.GetEcal(); 
+      weightFront = front.GetEcal()*GetStrip(front);
+      weightBack  = front.GetEcal()*GetStrip(back);
+
     }
   }
   //if the above does NOT make a pixel, i somehow need to check pairs for energy summing???
 
+  fX = weightFront  / sumFront;
+  fY = weightBack   / sumBack;
 
 
 }

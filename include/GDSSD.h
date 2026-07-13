@@ -5,7 +5,7 @@
 
 #include<vector>
 
-
+/*
 class pixel {
   
   //private:
@@ -14,6 +14,8 @@ class pixel {
     double energy;
     double time;
 };
+ */  // NOT needed - this is dumb, dont do it.
+
 
 class GDSSD {
   public:
@@ -39,10 +41,13 @@ class GDSSD {
     double Energy() const;
     bool HasEnergy() const;
 
+    int GetStrip(const ddasHit&) const; 
+
   //private:
     double fX;
     double fY;
-    
+   
+    double fEnergy;
     double fTime;
 
     bool Triggered() const { return fFront.size() && fBack.size(); }
@@ -51,7 +56,7 @@ class GDSSD {
     std::vector<ddasHit> fFront; //!
     std::vector<ddasHit> fBack;  //!
 
-    std::vector<pixel> fPixels;
+    //std::vector<pixel> fPixels;
 
   ClassDef(GDSSD,0);
 };
