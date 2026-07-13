@@ -6,6 +6,15 @@
 #include<vector>
 
 
+class pixel {
+  
+  //private:
+    double fX;
+    double fY;
+    double energy;
+    double time;
+};
+
 class GDSSD {
   public:
     GDSSD() = default;
@@ -17,7 +26,7 @@ class GDSSD {
     void AddBackHit(const ddasHit &hit)  { fBack.emplace_back(hit); }
 
 // implementing DSSD front v/s back position plot
-    void Build();  
+    void Build();  // convert fFront & fBack into pixels.
     bool HasPosition() const {return fX >= 0 && fY >= 0;}
     double X() const {return fX;}
     double Y() const {return fY;}  // channel id to strip calculation done in GDSSD.cxx   
@@ -41,6 +50,8 @@ class GDSSD {
   //private:
     std::vector<ddasHit> fFront; //!
     std::vector<ddasHit> fBack;  //!
+
+    std::vector<pixel> fPixels;
 
   ClassDef(GDSSD,0);
 };

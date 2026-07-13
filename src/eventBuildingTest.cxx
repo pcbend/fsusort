@@ -393,8 +393,16 @@ bcs.fLowGain.Build();
     // High-gain front/back pairs
     for(const auto& front : bcs.fHighGain.fFront) {
       for(const auto& back : bcs.fHighGain.fBack) {
-        GHistogramer::Get().Fill("dssd/front_energy_vs_back_energy",4000, 0, 32000, front.GetEcal(),
+        
+       int front_slot = (front.GetAddress() &0xff00)>>8;
+       int back_slot  = (back.GetAddress() &0xff00)>>8;
+
+        GHistogramer::Get().Fill(Form("dssd/front_energy_vs_back_energy_%i_%i",front_slot,back_slot),
+            4000, 0, 32000, front.GetEcal(),
             4000, 0, 32000, back.GetEcal());
+    
+        GHistogramer::Get().Fill("dssd/highGain_dt",5000,-2500,2500, front.GetTime() - back.GetTime(),
+                                                    40,0,40,front.GetId());
       }
     }
     
@@ -403,6 +411,9 @@ bcs.fLowGain.Build();
       for(const auto& back : bcs.fLowGain.fBack) {
         GHistogramer::Get().Fill("dssd/front_energy_vs_back_energy",4000, 0, 32000, front.GetEcal(),
             4000, 0, 32000, back.GetEcal());
+        //GHistogramer::Get().Fill("dssd/lowGain_dt",5000,-2500,2500, front.GetTime() - back.GetTime());
+        GHistogramer::Get().Fill("dssd/highGain_dt",5000,-2500,2500, front.GetTime() - back.GetTime(),
+                                                    40,0,40,front.GetId()-40);
       }
     }
 

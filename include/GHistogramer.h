@@ -42,8 +42,8 @@ class GHistogramer {
     void Print(Option_t *opt="") const;
 
     void Fill(const std::string& pathName,
-              int xbins,double xlow,double xhigh,double xvalue,
-              int ybins=-1,double ylow=sqrt(-1),double yhigh=sqrt(-1),double yvalue=sqrt(-1));
+                     int xbins,double xlow,double xhigh,double xvalue,
+                     int ybins=-1,double ylow=sqrt(-1),double yhigh=sqrt(-1),double yvalue=sqrt(-1));
 
     TH1* Create(TDirectory* dir, const std::string& name, 
               int xbins,double xlow,double xhigh,

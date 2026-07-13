@@ -51,6 +51,21 @@ static int BackStrip(int id) {
 // Weighted average to get XY position == (front strip, back strip)
 
 void GDSSD::Build() {
+
+  
+  for(const auto& front : fFront) {
+    for(const auto& back : fBack) {
+      if(abs(front.GetTime()-back.GetTime())>100) continue;
+      if(abs(front.GetEcal()-back.GetEcal())>1000) continue;
+      //build a pixel, remember used strips.
+    }
+  }
+  //if the above does NOT make a pixel, i somehow need to check pairs for energy summing???
+
+
+
+}
+/*
   fX = -1;
   fY = -1;
 
@@ -91,11 +106,10 @@ void GDSSD::Build() {
   fX = frontWeightedSum / frontEnergySum;
   fY = backWeightedSum / backEnergySum;
 }
-
+*/
 
 double GDSSD::FrontEnergySum() const {
   double sum = 0.0;
-
   for(const auto& hit : fFront) {
     if(hit.GetEcal() > 0.0)
       sum += hit.GetEcal();
