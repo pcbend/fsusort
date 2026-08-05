@@ -101,9 +101,9 @@ TH1* GHistogramer::Create(TDirectory* dir, const std::string& name,
   if(dir) dir->cd();
   TH1* hist = 0;
   if(ybins>0) 
-    hist = new TH2D(name.c_str(),name.c_str(),xbins,xlow,xhigh,ybins,ylow,yhigh);
+    hist = new TH2F(name.c_str(),name.c_str(),xbins,xlow,xhigh,ybins,ylow,yhigh);
   else
-    hist = new TH1D(name.c_str(),name.c_str(),xbins,xlow,xhigh);
+    hist = new TH1F(name.c_str(),name.c_str(),xbins,xlow,xhigh);
   hist->SetDirectory(dir);
   if(oldDir) oldDir->cd();
   return hist;

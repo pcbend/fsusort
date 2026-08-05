@@ -28,6 +28,7 @@ class evtFile{
     std::ifstream inFile;
     void*         gzFileHandle{nullptr};
     bool          isGzip{false};
+    size_t        gzipBytesSincePositionUpdate{0};
 
     size_t    inFileSize{0};
     size_t    inFilePos{0};
@@ -76,7 +77,8 @@ class evtFile{
   private:
     bool ReadBytes(void* dest, size_t nBytes);
     bool SkipBytes(size_t nBytes);
-    void UpdateFilePosition();
+    void AdvanceFilePosition(size_t nBytes);
+    void UpdateFilePosition(bool force = false);
 
   ClassDef(evtFile,0)
 };

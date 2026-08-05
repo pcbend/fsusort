@@ -10,6 +10,9 @@
 #include <zlib.h>
 
 namespace {
+constexpr int GZIP_BUFFER_SIZE = 1024 * 1024;
+constexpr size_t GZIP_POSITION_UPDATE_BYTES = 1024 * 1024;
+
 bool HasGzipExtension(const std::string& filename) {
   constexpr const char* extension = ".gz";
   return filename.size() >= 3 &&
@@ -48,6 +51,7 @@ void evtFile::OpenFile(std::string inFileName, bool isNSCL){
       CloseFile();
       return;
     }
+    gzbuffer(reinterpret_cast<gzFile>(gzFileHandle), GZIP_BUFFER_SIZE);
   } else {
     inFile.open(inFileName.c_str(),std::ios::binary | std::ios::ate);
   }
@@ -62,6 +66,7 @@ void evtFile::OpenFile(std::string inFileName, bool isNSCL){
       inFile.seekg(0,std::ios::beg);
     }
     inFilePos = 0;
+    gzipBytesSincePositionUpdate = 0;
 
     //data.Clear();
     this->isNSCL = isNSCL;
@@ -86,6 +91,7 @@ void evtFile::CloseFile(){
 
   inFileSize = 0;
   inFilePos  = 0;
+  gzipBytesSincePositionUpdate = 0;
   nBlock     = 0;    
   blockID    = -1;
   endOfFile  = false;
@@ -123,23 +129,23 @@ bool evtFile::ReadBytes(void* dest, size_t nBytes) {
         gzread(reinterpret_cast<gzFile>(gzFileHandle), out + totalRead, chunkSize);
 
       if(bytesRead <= 0) {
-        UpdateFilePosition();
+        UpdateFilePosition(true);
         return false;
       }
 
       totalRead += static_cast<size_t>(bytesRead);
     }
 
-    UpdateFilePosition();
+    AdvanceFilePosition(nBytes);
     return true;
   }
 
   if(!inFile.read(reinterpret_cast<char*>(dest), nBytes)) {
-    UpdateFilePosition();
+    UpdateFilePosition(true);
     return false;
   }
 
-  UpdateFilePosition();
+  AdvanceFilePosition(nBytes);
   return true;
 }
 
@@ -156,34 +162,53 @@ bool evtFile::SkipBytes(size_t nBytes) {
              static_cast<z_off_t>(nBytes),
              SEEK_CUR);
 
-    UpdateFilePosition();
-    return skipped >= 0;
+    if(skipped < 0) {
+      UpdateFilePosition(true);
+      return false;
+    }
+
+    AdvanceFilePosition(nBytes);
+    return true;
   }
 
   if(!inFile.seekg(static_cast<std::streamoff>(nBytes), std::ios::cur)) {
-    UpdateFilePosition();
+    UpdateFilePosition(true);
     return false;
   }
 
-  UpdateFilePosition();
+  AdvanceFilePosition(nBytes);
   return true;
 }
 
-void evtFile::UpdateFilePosition() {
+void evtFile::AdvanceFilePosition(size_t nBytes) {
+  if(isGzip) {
+    gzipBytesSincePositionUpdate += nBytes;
+    UpdateFilePosition(false);
+    return;
+  }
+
+  inFilePos += nBytes;
+}
+
+void evtFile::UpdateFilePosition(bool force) {
   if(isGzip) {
     if(!gzFileHandle)
+      return;
+
+    if(!force && gzipBytesSincePositionUpdate < GZIP_POSITION_UPDATE_BYTES)
       return;
 
     const z_off_t compressedOffset =
       gzoffset(reinterpret_cast<gzFile>(gzFileHandle));
 
-    if(compressedOffset >= 0)
+    if(compressedOffset >= 0) {
       inFilePos = static_cast<size_t>(compressedOffset);
-
+      gzipBytesSincePositionUpdate = 0;
+    }
     return;
   }
 
-  if(!inFile.is_open())
+  if(!force || !inFile.is_open())
     return;
 
   const std::streampos current = inFile.tellg();
