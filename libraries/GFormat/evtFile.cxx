@@ -2,13 +2,27 @@
 #include <evtFile.h>
 #include <dataBlock.h>
 
+#include <algorithm>
+#include <filesystem>
+#include <limits>
+#include <system_error>
+
+#include <zlib.h>
+
+namespace {
+bool HasGzipExtension(const std::string& filename) {
+  constexpr const char* extension = ".gz";
+  return filename.size() >= 3 &&
+    filename.compare(filename.size() - 3, 3, extension) == 0;
+}
+}
 
 evtFile::evtFile(){
   //data       = new dataBlock();
 }
 
 evtFile::~evtFile(){
-  if(inFile.is_open()) inFile.close();
+  CloseFile();
   //if(data)           delete data;
   if(pxidata)        delete pxidata;
 }
@@ -19,14 +33,34 @@ evtFile::evtFile(std::string inFileName, bool isNSCL){
 }
 
 void evtFile::OpenFile(std::string inFileName, bool isNSCL){
-  inFile.open(inFileName.c_str(),std::ios::binary | std::ios::ate);
+  CloseFile();
+
+  isGzip = HasGzipExtension(inFileName);
+  std::error_code error;
+  const auto fileSize = std::filesystem::file_size(inFileName, error);
+  if(!error)
+    inFileSize = static_cast<size_t>(fileSize);
+
+  if(isGzip) {
+    gzFileHandle = gzopen(inFileName.c_str(), "rb");
+    if(!gzFileHandle) {
+      printf("Cannot read file : %s \n", inFileName.c_str());
+      CloseFile();
+      return;
+    }
+  } else {
+    inFile.open(inFileName.c_str(),std::ios::binary | std::ios::ate);
+  }
   //= fopen(inFileName.c_str(), "r");
-  if(!inFile.is_open()){
+  if(!isGzip && !inFile.is_open()){
     printf("Cannot read file : %s \n", inFileName.c_str());
     return;
   }else{
-    inFileSize = static_cast<size_t>(inFile.tellg());
-    inFile.seekg(0,std::ios::beg);
+    if(!isGzip) {
+      if(error)
+        inFileSize = static_cast<size_t>(inFile.tellg());
+      inFile.seekg(0,std::ios::beg);
+    }
     inFilePos = 0;
 
     //data.Clear();
@@ -41,7 +75,12 @@ void evtFile::OpenFile(std::string inFileName, bool isNSCL){
 
 void evtFile::CloseFile(){
   //fclose(inFile);
-  inFile.close();
+  if(inFile.is_open())
+    inFile.close();
+  if(gzFileHandle) {
+    gzclose(reinterpret_cast<gzFile>(gzFileHandle));
+    gzFileHandle = nullptr;
+  }
   isOpened = false;
   //data.Clear();
 
@@ -51,10 +90,11 @@ void evtFile::CloseFile(){
   blockID    = -1;
   endOfFile  = false;
   isNSCL     = false;
+  isGzip     = false;
 };
 
 void evtFile::UpdateFileSize(){
-  if(!inFile.is_open()) return;
+  if(isGzip || !inFile.is_open()) return;
   std::streampos current = inFile.tellg();
   inFile.seekg(0,std::ios::end);
   inFileSize = static_cast<size_t>(inFile.tellg());
@@ -62,40 +102,128 @@ void evtFile::UpdateFileSize(){
   inFile.seekg(current);
 }
 
+bool evtFile::ReadBytes(void* dest, size_t nBytes) {
+  if(nBytes == 0)
+    return true;
+
+  if(isGzip) {
+    if(!gzFileHandle)
+      return false;
+
+    auto* out = reinterpret_cast<unsigned char*>(dest);
+    size_t totalRead = 0;
+
+    while(totalRead < nBytes) {
+      const unsigned int chunkSize =
+        static_cast<unsigned int>(std::min<size_t>(
+            nBytes - totalRead,
+            static_cast<size_t>(std::numeric_limits<unsigned int>::max())));
+
+      const int bytesRead =
+        gzread(reinterpret_cast<gzFile>(gzFileHandle), out + totalRead, chunkSize);
+
+      if(bytesRead <= 0) {
+        UpdateFilePosition();
+        return false;
+      }
+
+      totalRead += static_cast<size_t>(bytesRead);
+    }
+
+    UpdateFilePosition();
+    return true;
+  }
+
+  if(!inFile.read(reinterpret_cast<char*>(dest), nBytes)) {
+    UpdateFilePosition();
+    return false;
+  }
+
+  UpdateFilePosition();
+  return true;
+}
+
+bool evtFile::SkipBytes(size_t nBytes) {
+  if(nBytes == 0)
+    return true;
+
+  if(isGzip) {
+    if(!gzFileHandle)
+      return false;
+
+    const z_off_t skipped =
+      gzseek(reinterpret_cast<gzFile>(gzFileHandle),
+             static_cast<z_off_t>(nBytes),
+             SEEK_CUR);
+
+    UpdateFilePosition();
+    return skipped >= 0;
+  }
+
+  if(!inFile.seekg(static_cast<std::streamoff>(nBytes), std::ios::cur)) {
+    UpdateFilePosition();
+    return false;
+  }
+
+  UpdateFilePosition();
+  return true;
+}
+
+void evtFile::UpdateFilePosition() {
+  if(isGzip) {
+    if(!gzFileHandle)
+      return;
+
+    const z_off_t compressedOffset =
+      gzoffset(reinterpret_cast<gzFile>(gzFileHandle));
+
+    if(compressedOffset >= 0)
+      inFilePos = static_cast<size_t>(compressedOffset);
+
+    return;
+  }
+
+  if(!inFile.is_open())
+    return;
+
+  const std::streampos current = inFile.tellg();
+  if(current != std::streampos(-1))
+    inFilePos = static_cast<size_t>(current);
+}
+
 int evtFile::ReadBlock(dataBlock &data, int opt) {
 
-  if(inFile.eof()) return -1;
+  if(!isOpened)    return -1;
   if(endOfFile)   return -1;
 
   if(isNSCL && readRingItemByte == rib_size[0]) {
     unsigned int rih[2] = {0};
 
     do {
-      if(!inFile.read(reinterpret_cast<char*>(rih), sizeof(rih))) {
+      if(!ReadBytes(rih, sizeof(rih))) {
         endOfFile = true;
         return -1;
       }
-      inFilePos += sizeof(rih);
 
       if(rih[1] != 30) {
-        inFile.seekg(rih[0] - 8, std::ios::cur);
-        inFilePos += rih[0] - 8;
+        if(!SkipBytes(rih[0] - 8)) {
+          endOfFile = true;
+          return -1;
+        }
       }
     } while(rih[1] != 30);
 
     unsigned int ribh[5] = {0};
 
-    if(!inFile.read(reinterpret_cast<char*>(ribh), sizeof(ribh))) {
+    if(!ReadBytes(ribh, sizeof(ribh))) {
       endOfFile = true;
       return -1;
     }
-    inFilePos += sizeof(ribh);
 
-    if(!inFile.read(reinterpret_cast<char*>(rib_size), sizeof(rib_size))) {
+    if(!ReadBytes(rib_size, sizeof(rib_size))) {
       endOfFile = true;
       return -1;
     }
-    inFilePos += sizeof(rib_size);
 
     readRingItemByte = 4;
   }
@@ -104,8 +232,10 @@ int evtFile::ReadBlock(dataBlock &data, int opt) {
     if(rib_size[0] > 48 && readRingItemByte < rib_size[0]) {
       constexpr size_t skipBytes = 14 * sizeof(uint32_t);
 
-      inFile.seekg(skipBytes, std::ios::cur);
-      inFilePos += skipBytes;
+      if(!SkipBytes(skipBytes)) {
+        endOfFile = true;
+        return -1;
+      }
       readRingItemByte += skipBytes;
     } else {
       return -2;
@@ -114,12 +244,11 @@ int evtFile::ReadBlock(dataBlock &data, int opt) {
 
   unsigned int header[4];
 
-  if(!inFile.read(reinterpret_cast<char*>(header), sizeof(header))) {
+  if(!ReadBytes(header, sizeof(header))) {
     endOfFile = true;
     return -1;
   }
 
-  inFilePos += sizeof(header);
   readRingItemByte += sizeof(header);
   blockID++;
 
@@ -147,10 +276,11 @@ int evtFile::ReadBlock(dataBlock &data, int opt) {
       data.headerLength > 4 ? data.headerLength - 4 : 0;
 
     if(extraWords > 0) {
-      inFile.read(reinterpret_cast<char*>(extraHeader),
-          sizeof(uint32_t) * extraWords);
+      if(!ReadBytes(extraHeader, sizeof(uint32_t) * extraWords)) {
+        endOfFile = true;
+        return -1;
+      }
 
-      inFilePos += sizeof(uint32_t) * extraWords;
       readRingItemByte += sizeof(uint32_t) * extraWords;
 
       if(data.headerLength == 8 || data.headerLength == 16) {
@@ -196,8 +326,10 @@ int evtFile::ReadBlock(dataBlock &data, int opt) {
 //      }
 //    }
 if(traceWords > 0) {
-  inFile.seekg(sizeof(uint32_t) * traceWords, std::ios::cur);
-  inFilePos += sizeof(uint32_t) * traceWords;
+  if(!SkipBytes(sizeof(uint32_t) * traceWords)) {
+    endOfFile = true;
+    return -1;
+  }
   readRingItemByte += sizeof(uint32_t) * traceWords;
 
   data.trace_length = 0;
@@ -214,8 +346,10 @@ if(traceWords > 0) {
       data.eventLength > 4 ? data.eventLength - 4 : 0;
 
     if(remainingWords > 0) {
-      inFile.seekg(sizeof(uint32_t) * remainingWords, std::ios::cur);
-      inFilePos += sizeof(uint32_t) * remainingWords;
+      if(!SkipBytes(sizeof(uint32_t) * remainingWords)) {
+        endOfFile = true;
+        return -1;
+      }
       readRingItemByte += sizeof(uint32_t) * remainingWords;
     }
   }
@@ -383,62 +517,3 @@ if( data.eventLength > data.headerLength ){
         return 1; 
         }
    */
-
-void evtFile::ScanNumberOfBlock(){
-
-  nBlock = 0;
-  int count = 0;
-  dataBlock data;
-  while( ReadBlock(data,1) != -1 ){
-    nBlock ++;
-    int haha = (inFilePos*10/inFileSize)%10;
-    if(  haha == count ) {
-      inFilePosPrecent[count] = inFilePos;
-      blockIDPrecent[count] = blockID;
-      count++;
-    }
-
-    PrintStatus(10000);
-  }
-
-  printf("\n\n\n");
-  printf("scan complete: number of data Block : %ld\n", nBlock);
-
-  inFilePos = 0;
-  blockID = -1;
-
-  //rewind(inFile); ///back to the File begining
-  inFile.seekg(0,std::ios::beg);
-  endOfFile = false;
-
-}
-
-void evtFile::JumptoPrecent(int precent){
-
-  if( precent < 0 || precent > 10 ) {
-    printf("input precent should be 0 to 10\n");
-    return;
-  } 
-
-  //fseek(inFile, inFilePosPrecent[precent], SEEK_SET);
-  inFile.seekg(inFilePosPrecent[precent]);
-  blockID = blockIDPrecent[precent];
-
-}
-
-void evtFile::PrintStatus(int mod){
-
-  ///==== event stats, print status every 10000 events
-
-  if ( blockID % mod == 0 ) {
-
-    UpdateFileSize();
-    //gClock.Stop("timer");
-    //double time = gClock.GetRealTime("timer");
-    //gClock.Start("timer");
-    //printf("Total measurements: \x1B[32m%llu \x1B[0m\nReading Pos: \x1B[32m %.3f/%.3f GB\x1B[0m\nTime used:%3.0f min %5.2f sec\033[A\033[A\r", 
-    //             blockID, inFilePos/(1024.*1024.*1024.), inFileSize/1024./1024./1024,  TMath::Floor(time/60.), time - TMath::Floor(time/60.)*60.);
-  }   
-
-}
-

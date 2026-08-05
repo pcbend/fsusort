@@ -26,6 +26,8 @@ class evtFile{
   private:
     //FILE * inFile;
     std::ifstream inFile;
+    void*         gzFileHandle{nullptr};
+    bool          isGzip{false};
 
     size_t    inFileSize{0};
     size_t    inFilePos{0};
@@ -37,9 +39,6 @@ class evtFile{
     uint32_t  extraHeader[14];
     uint32_t  traceBlock[MAX_TRACE_LENGTH/2];
     
-    int64_t   inFilePosPrecent[10];
-    int64_t   blockIDPrecent[10];
-
     int32_t   *pxidata{NULL};
     int64_t   nWords{0};
     
@@ -59,7 +58,7 @@ class evtFile{
     void CloseFile();    
 
     void UpdateFileSize();
-    bool IsEndOfFile()         const { return inFile.is_open() ? inFile.eof() : false; }
+    bool IsEndOfFile()         const { return endOfFile; }
     
     bool    IsOpen()           const {return isOpened;}         
     int64_t GetFilePos()       const {return inFilePos;}
@@ -72,11 +71,12 @@ class evtFile{
                                                  /// 1 = no fill data
                                                  /// 2 = fill data and print
 
-    void ScanNumberOfBlock();
-    void JumptoPrecent(int precent); ///this is offset by 1 block
-    void PrintStatus(int mod);
-    
     void SetNSCL(bool isNSCL_Evt)  { isNSCL = isNSCL_Evt; }
+
+  private:
+    bool ReadBytes(void* dest, size_t nBytes);
+    bool SkipBytes(size_t nBytes);
+    void UpdateFilePosition();
 
   ClassDef(evtFile,0)
 };

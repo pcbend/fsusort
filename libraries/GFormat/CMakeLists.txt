@@ -1,5 +1,7 @@
 
 #this will compile the current library.
+find_package(ZLIB REQUIRED)
+
 add_library(GFORMAT SHARED 
   GChannel.cxx
   dataBlock.cxx 
@@ -26,6 +28,7 @@ target_link_libraries(GFORMAT
   PUBLIC
     ROOT::Core
     ROOT::MathCore
+  PRIVATE
+    ZLIB::ZLIB
 )
-
 
